@@ -6,6 +6,7 @@ RUN cd /src && apk add git && go build -o exabgp_exporter ./cmd/exabgp_exporter 
 FROM ubuntu:16.04
 ENV EXABGP_VERSION 4.0.10
 ENV HOME /root
+ENV S6_LOGGING 1
 EXPOSE 9569
 WORKDIR /root
 RUN mkdir -p /exabgp/run
@@ -22,7 +23,6 @@ RUN apt-get update && apt-get install -qy --no-install-recommends \
 # Utility
     iproute2 \
     socat \
-    rsyslog \
     curl \
     tmux \
     vim-nox \
@@ -33,6 +33,9 @@ RUN apt-get update && apt-get install -qy --no-install-recommends \
 ADD https://github.com/osrg/gobgp/releases/download/v2.3.0/gobgp_2.3.0_linux_amd64.tar.gz /gobgp.tar.gz
 RUN tar -xvf /gobgp.tar.gz -C /gobgp/
 
+ADD https://github.com/just-containers/s6-overlay-builder/releases/download/v1.8.5/s6-overlay-portable-amd64.tar.gz /tmp/
+RUN tar xzf /tmp/s6-overlay-portable-amd64.tar.gz -C /
+
 RUN mkfifo /exabgp/run/exabgp.in
 RUN mkfifo /exabgp/run/exabgp.out
 RUN chmod 666 /exabgp/run/exabgp.*
@@ -40,4 +43,8 @@ COPY docker/files/exabgp.conf /exabgp/etc/exabgp/exabgp.conf
 COPY docker/files/gobgp.yaml /gobgp/gobgp.yaml
 COPY docker/files/rsyslog.conf /etc/rsyslog.conf
 COPY docker/*.sh /root/
-CMD [ "/root/start-all.sh" ]
+RUN mkdir /etc/services.d/gobgp
+RUN mkdir /etc/services.d/exabgp
+COPY docker/exabgp.sh /etc/services.d/exabgp/run
+COPY docker/gobgpd.sh /etc/services.d/gobgp/run
+ENTRYPOINT [ "/init" ]
