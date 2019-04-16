@@ -1,6 +1,6 @@
-version: 2
+version: 2.1
 jobs:
-  build:
+  test:
     docker:
       - image: circleci/golang:1.12
     working_directory: /tmp/{{REPO_NAME}}
@@ -15,13 +15,19 @@ jobs:
       - run:
           name: test
           command: script/test
+  integration:
+    docker:
+      - image: circleci/golang:1.12
+    working_directory: /tmp/{{REPO_NAME}}
+    steps:
+      - checkout
       - setup_remote_docker
       - run:
-          name: build-test-container
+          name: build-container
           command: script/build-docker
       - run:
-          name: run-test-container
+          name: test-container
           command: script/run-docker
       - run:
-          name: stop-test-container
+          name: stop-container
           command: script/stop-docker
