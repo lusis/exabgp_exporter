@@ -34,3 +34,9 @@ jobs:
       - run:
           name: stop-container
           command: script/stop-docker
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - test
+      - integration
