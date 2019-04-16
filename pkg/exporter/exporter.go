@@ -11,7 +11,7 @@ import (
 var PeerRouteStateMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 	Name: "peer_route_state",
 	Help: "shows the current peer state for a given route",
-}, []string{"peer_ip", "self_ip", "peer_asn", "self_asn", "route", "family"})
+}, []string{"peer_ip", "self_ip", "peer_asn", "self_asn", "nlri", "family"})
 
 // PeerStateMetric represents a prometheus metric for the current state of an exabgp neighbor
 var PeerStateMetric = prometheus.NewGaugeVec(prometheus.GaugeOpts{

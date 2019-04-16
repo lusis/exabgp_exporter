@@ -85,8 +85,8 @@ func TestIPv4Announce(t *testing.T) {
 	require.NotEmpty(t, announcements.IPV4Unicast["192.168.1.184"].Attributes.Origin)
 	require.NotEmpty(t, announcements.IPV4Unicast["192.168.1.184"].Attributes.LocalPreference)
 	require.Len(t, announcements.IPV4Unicast, 1)
-	require.Len(t, announcements.IPV4Unicast["192.168.1.184"].Routes, 1)
-	require.Contains(t, announcements.IPV4Unicast["192.168.1.184"].Routes, "192.168.88.2/32")
+	require.Len(t, announcements.IPV4Unicast["192.168.1.184"].NLRI, 1)
+	require.Contains(t, announcements.IPV4Unicast["192.168.1.184"].NLRI, "192.168.88.2/32")
 }
 
 func TestIPv4AnnounceMulti(t *testing.T) {
@@ -98,8 +98,8 @@ func TestIPv4AnnounceMulti(t *testing.T) {
 	require.NotEmpty(t, announcements.IPV4Unicast["192.168.1.184"].Attributes.Origin)
 	require.NotEmpty(t, announcements.IPV4Unicast["192.168.1.184"].Attributes.LocalPreference)
 	require.Len(t, announcements.IPV4Unicast, 1)
-	require.Len(t, announcements.IPV4Unicast["192.168.1.184"].Routes, 5)
-	require.Contains(t, announcements.IPV4Unicast["192.168.1.184"].Routes, "192.168.88.0/24")
+	require.Len(t, announcements.IPV4Unicast["192.168.1.184"].NLRI, 5)
+	require.Contains(t, announcements.IPV4Unicast["192.168.1.184"].NLRI, "192.168.88.0/24")
 }
 
 func TestIPv4AnnounceFlow(t *testing.T) {
@@ -135,19 +135,19 @@ func TestIPv4Withdraw(t *testing.T) {
 	w := evt.GetWithdrawals()
 	require.NotNil(t, w)
 	require.Len(t, w.IPv4Unicast, 1)
-	require.Contains(t, w.IPv4Unicast[0].Routes, "192.168.88.2/32")
+	require.Contains(t, w.IPv4Unicast[0].NLRI, "192.168.88.2/32")
 }
 
 func TestIPv4WithdrawMulti(t *testing.T) {
-	var testString = `{ "exabgp": "4.0.1", "time": 1554987394.5413187, "host" : "node1", "pid" : 14339, "ppid" : 1, "counter": 14, "type": "update", "neighbor": { "address": { "local": "192.168.1.184", "peer": "192.168.1.158" }, "asn": { "local": 64496, "peer": 64496 } , "direction": "send", "message": { "update": { "withdraw": { "ipv4 unicast": [ "0.0.0.0/0", "0.0.0.0/0", "0.0.0.0/0", "0.0.0.0/0", "192.168.88.0/24" ] } } } } }`
+	var testString = `{ "exabgp": "4.0.1", "time": 1554987394.5413187, "host" : "node1", "pid" : 14339, "ppid" : 1, "counter": 14, "type": "update", "neighbor": { "address": { "local": "192.168.1.184", "peer": "192.168.1.158" }, "asn": { "local": 64496, "peer": 64496 } , "direction": "send", "message": { "update": { "withdraw": { "ipv4 unicast": [ "192.168.87.0/24", "192.168.86.0/24", "192.168.88.0/24" ] } } } } }`
 	evt, err := ParseEvent([]byte(testString))
 	require.NoError(t, err)
 	require.Equal(t, "4.0.1", evt.GetVersion())
 	w := evt.GetWithdrawals()
 	require.NotNil(t, w)
 	require.Len(t, w.IPv4Unicast, 1)
-	require.Len(t, w.IPv4Unicast[0].Routes, 5)
-	require.Contains(t, w.IPv4Unicast[0].Routes[4], "192.168.88.0/24")
+	require.Len(t, w.IPv4Unicast[0].NLRI, 3)
+	require.Contains(t, w.IPv4Unicast[0].NLRI[2], "192.168.88.0/24")
 }
 func TestPeerState(t *testing.T) {
 	tc := map[string]string{

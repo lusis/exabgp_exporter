@@ -1,0 +1,62 @@
+global:
+    config:
+        as: 64496
+        router-id: 2.2.2.2
+        port: 2179
+        local-address-list: ["127.0.0.1"]
+
+neighbors:
+    - config:
+        neighbor-address: 127.0.0.1 
+        peer-as: 64496
+      transport:
+        config:
+          passive-mode: true
+          remote-port: 1179
+      route-reflector:
+        config:
+          route-reflector-client: true
+          route-reflector-cluster-id: 1.2.3.4
+      timers:
+        config:
+          hold-time: 180
+      add-paths:
+        config:      
+          receive: true
+      afi-safis:
+        - config:
+            afi-safi-name: ipv4-unicast
+        - config:
+            afi-safi-name: ipv4-labelled-unicast
+        - config:
+            afi-safi-name: ipv4-multicast
+        - config:
+            afi-safi-name: ipv4-encap
+        - config:
+            afi-safi-name: ipv4-flowspec
+        - config:
+            afi-safi-name: ipv6-unicast
+        - config:
+            afi-safi-name: ipv6-labelled-unicast
+        - config:
+            afi-safi-name: ipv6-encap
+        - config:
+            afi-safi-name: ipv6-flowspec
+        - config:
+            afi-safi-name: l3vpn-ipv4-unicast
+        - config:
+            afi-safi-name: l3vpn-ipv4-flowspec
+        - config:
+            afi-safi-name: l3vpn-ipv6-unicast
+        - config:
+            afi-safi-name: l3vpn-ipv6-flowspec
+        - config:
+            afi-safi-name: l2vpn-evpn
+        - config:
+            afi-safi-name: l2vpn-vpls
+        - config:
+            afi-safi-name: l2vpn-flowspec
+        - config:
+            afi-safi-name: rtc
+        - config:
+            afi-safi-name: opaque

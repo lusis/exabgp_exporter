@@ -2,23 +2,25 @@ package main
 
 import (
 	"bufio"
+	"io"
 	"log"
+	"log/syslog"
 	"os"
 )
 
 func main() {
-	f, err := os.OpenFile("/tmp/exabgp.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	f, err := syslog.New(syslog.LOG_NOTICE, "exabgp_listener")
 	if err != nil {
-		log.Fatalf("error opening file: %v", err)
+		log.Fatal("unable to log to syslog")
+		os.Exit(1)
 	}
-	defer f.Close() // nolint: errcheck
 	log.SetOutput(f)
-	log.SetFlags(0)
+	//log.SetFlags(0)
 	r := bufio.NewReader(os.Stdin)
 
 	for {
 		line, _, err := r.ReadLine()
-		if err != nil {
+		if err != nil && err != io.EOF {
 			log.Printf("error: %s", err.Error())
 			continue
 		}

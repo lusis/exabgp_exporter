@@ -3,7 +3,9 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
+	"log/syslog"
 	"os"
 	"strings"
 
@@ -12,19 +14,19 @@ import (
 )
 
 func main() {
-	f, err := os.OpenFile("/tmp/exabgp.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	f, err := syslog.New(syslog.LOG_NOTICE, "exabgp_exporter")
 	if err != nil {
-		log.Fatalf("error opening file: %s", err.Error())
+		log.Fatal("unable to log to syslog")
+		os.Exit(1)
 	}
-	defer f.Close() // nolint: errcheck
+
 	log.SetOutput(f)
-	log.SetFlags(0)
 	reader := bufio.NewReader(os.Stdin)
 
 	go func() {
 		for {
 			line, _, rerr := reader.ReadLine()
-			if rerr != nil {
+			if rerr != nil && err != io.EOF {
 				log.Printf("error: %s", rerr.Error())
 				continue
 			}
@@ -63,14 +65,14 @@ func main() {
 
 			// right now we only care about messages we send
 			if evt.Direction == "send" {
-				// cardinality of a given route is family and destination for a given self/peer
+				// uniqueness is peer_ip, local_ip, peer_as, remote_as, nlri (an nlri is essentially a given network/netmask)
 				// we set it to either 0 or 1 based on withdrawn vs announced
 				announcements := evt.GetAnnouncements()
 				if announcements != nil {
 					for _, v := range announcements.IPV4Unicast {
 						labels["family"] = "ipv4 unicast"
-						for _, r := range v.Routes {
-							labels["route"] = r
+						for _, r := range v.NLRI {
+							labels["nlri"] = r
 							exporter.PeerRouteStateMetric.With(labels).Set(float64(1))
 						}
 					}
@@ -79,9 +81,9 @@ func main() {
 				withdraws := evt.GetWithdrawals()
 				if withdraws != nil {
 					for _, w := range withdraws.IPv4Unicast {
-						for _, r := range w.Routes {
+						for _, r := range w.NLRI {
 							labels["family"] = "ipv4 unicast"
-							labels["route"] = r
+							labels["nlri"] = r
 							exporter.PeerRouteStateMetric.With(labels).Set(float64(0))
 						}
 					}

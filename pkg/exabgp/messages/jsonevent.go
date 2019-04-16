@@ -87,12 +87,17 @@ type UpdateMessage struct {
 type UpdateMessageFull struct {
 	Attribute `json:"attribute"`
 	Announce  struct {
-		IPv4Unicast map[string][]string           `json:"ipv4 unicast"`
+		// messages are different between compact and non-compact mode
+		// compact: { "ipv4 unicast": { "192.168.1.184": [ "192.168.88.2/32" ] } }
+		// non-compact: "ipv4 unicast": [ { "nlri": "192.168.88.0/24" } ] } } } } }
+		IPv4Unicast map[string][]interface{}      `json:"ipv4 unicast"`
 		IPv4Flow    IPv4FlowAnnounceMessage       `json:"ipv4 flow"`
 		L2VPNVpls   map[string][]L2VPNVplsMessage `json:"l2vpn vpls"`
 	} `json:"announce"`
 	Withdraw struct {
-		IPv4Unicast []string                  `json:"ipv4 unicast"`
+		// compact: { "ipv4 unicast": { [ "192.168.88.2/32" ] } }
+		// non-compact: "ipv4 unicast": [ { "nlri": "192.168.88.0/24" } ] } } } } }
+		IPv4Unicast []interface{}             `json:"ipv4 unicast"`
 		IPv4Flow    []IPv4FlowWithdrawMessage `json:"ipv4 flow"`
 		L2VPNVpls   []L2VPNVplsMessage        `json:"l2vpn vpls"`
 	} `json:"withdraw"`
@@ -107,9 +112,16 @@ type EORMessage struct {
 }
 
 // IPv4UnicastAnnounceMessage represents an ipv4 unicast family announcement
-type IPv4UnicastAnnounceMessage map[string][]string // { "ipv4 unicast": { "192.168.1.184": [ "192.168.88.2/32" ] } }
+// messages are different between compact and non-compact mode
+// compact: { "ipv4 unicast": { "192.168.1.184": [ "192.168.88.2/32" ] } }
+// non-compact: "ipv4 unicast": [ { "nlri": "192.168.88.0/24" } ] } } } } }
+type IPv4UnicastAnnounceMessage interface{}
+
 // IPv4UnicastWithdrawMessage represents an ipv4 unicast family withdraw
-type IPv4UnicastWithdrawMessage []string // { "ipv4 unicast": [ "192.168.88.2/32" ] }
+// messages are different between compact and non-compact mode
+// compact: { "ipv4 unicast": { [ "192.168.88.2/32" ] } }
+// non-compact: "ipv4 unicast": [ { "nlri": "192.168.88.0/24" } ] } } } } }
+type IPv4UnicastWithdrawMessage interface{}
 
 // IPv4FlowAnnounceMessage represents an ipv4 flow family announcement
 type IPv4FlowAnnounceMessage map[string][]IPv4FlowMessage
