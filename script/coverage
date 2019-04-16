@@ -1,0 +1,4 @@
+#!/bin/bash
+go get github.com/axw/gocov/gocov
+
+gocov test ./cmd/... ./pkg/... | gocov report

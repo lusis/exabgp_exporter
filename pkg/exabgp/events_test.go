@@ -18,7 +18,8 @@ var testInvalidDataFile = filepath.Join("testdata", "exabgp.log.1")
 
 func testGetTotalLinesInFile(t *testing.T, f string) int {
 	file, err := os.Open(f)
-	defer file.Close() // nolint: errcheck
+	// nolint:errcheck,staticcheck
+	defer file.Close()
 
 	require.NoError(t, err)
 
@@ -32,7 +33,8 @@ func testGetTotalLinesInFile(t *testing.T, f string) int {
 
 func TestParseTestData(t *testing.T) {
 	file, err := os.Open(testDataFile)
-	defer file.Close() // nolint: errcheck
+	// nolint:errcheck,staticcheck
+	defer file.Close()
 	require.NoError(t, err)
 
 	totalLines := testGetTotalLinesInFile(t, testDataFile)
@@ -56,7 +58,8 @@ func TestParseTestData(t *testing.T) {
 
 func TestParseInvalidData(t *testing.T) {
 	file, err := os.Open(testInvalidDataFile)
-	defer file.Close() // nolint: errcheck
+	// nolint:errcheck,staticcheck
+	defer file.Close()
 	require.NoError(t, err)
 
 	totalLines := testGetTotalLinesInFile(t, testInvalidDataFile)

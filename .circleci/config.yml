@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.12
+    working_directory: /{{REPO_NAME}}
+    steps:
+      - checkout
+      - run: script/coverage
+      - run: script/lint
+      - run: script/test
