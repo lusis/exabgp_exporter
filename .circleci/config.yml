@@ -6,6 +6,22 @@ jobs:
     working_directory: /tmp/{{REPO_NAME}}
     steps:
       - checkout
-      - run: script/coverage
-      - run: script/lint
-      - run: script/test
+      - run:
+        name: coverage
+        command: script/coverage
+      - run:
+        name: lint
+        command: script/lint
+      - run:
+        name: test
+        command: script/test
+      - setup_remote_docker
+      - run:
+        name: build-test-container
+        command: script/build-docker
+      - run:
+        name: run-test-container
+        command: script/run-docker
+      - run:
+        name: stop-test-container
+        command: script/stop-docker
