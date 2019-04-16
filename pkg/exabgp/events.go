@@ -178,6 +178,8 @@ func ParseEvent(data []byte) (*Event, error) {
 	case "keepalive":
 		// nothing to do yet
 		// increment counter in future?
+	case "signal":
+		// nothing yet
 	default:
 		return nil, fmt.Errorf("Cannot handle event type: %s [data: %s]", jsonEvent.Type, data)
 	}

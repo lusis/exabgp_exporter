@@ -60,13 +60,15 @@ type Neighbor struct {
 		Local int `json:"local"`
 		Peer  int `json:"peer"`
 	} `json:"asn"`
-	Direction    string              `json:"direction"`
-	State        string              `json:"state"`
-	Reason       string              `json:"reason"`
-	Notification NotificationMessage `json:"notification"`
+	Direction    string      `json:"direction"`
+	State        string      `json:"state"`
+	Reason       string      `json:"reason"`
+	Notification interface{} `json:"notification"`
 	Message      struct {
 		Update UpdateMessageFull `json:"update"`
 	} `json:"message"`
+	Name string `json:"name"`
+	Code string `json:"code"`
 }
 
 // NotificationMessage represents a notification message
