@@ -92,7 +92,7 @@ sleep 3
 echo "testing announce"
 diff  <(echo "$EXPECTED_ANNOUNCE" ) <(echo "$ACTUAL_ANNOUNCE")
 if ! diff  <(echo "$EXPECTED_ANNOUNCE" ) <(echo "$ACTUAL_ANNOUNCE"); then
-    docker exec exabgp_exporter cat /var/log/syslog
+    docker logs exabgp_exporter
     exit 1
 fi
 
@@ -100,6 +100,6 @@ ACTUAL_WITHDRAW=$(script/withdraw-docker)
 echo "testing withdraw"
 sleep 3
 if ! diff  <(echo "$EXPECTED_WITHDRAW" ) <(echo "$ACTUAL_WITHDRAW"); then
-    docker exec exabgp_exporter cat /var/log/syslog
+    docker logs exabgp_exporter
     exit 1
 fi

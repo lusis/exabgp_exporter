@@ -1,3 +1,5 @@
 #!/bin/bash
 cd /gobgp || exit 1
-./gobgpd -f gobgp.yaml --disable-stdlog  --syslog yes --log-plain yes
+# sleep so that gobgp isn't ready yet
+sleep 5
+exec ./gobgpd -f gobgp.yaml

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"log/syslog"
 	"os"
 	"strings"
 
@@ -14,19 +13,14 @@ import (
 )
 
 func main() {
-	f, err := syslog.New(syslog.LOG_NOTICE, "exabgp_exporter")
-	if err != nil {
-		log.Fatal("unable to log to syslog")
-		os.Exit(1)
-	}
-
-	log.SetOutput(f)
+	log.SetOutput(os.Stderr)
+	log.SetFlags(0)
 	reader := bufio.NewReader(os.Stdin)
 
 	go func() {
 		for {
 			line, _, rerr := reader.ReadLine()
-			if rerr != nil && err != io.EOF {
+			if rerr != nil && rerr != io.EOF {
 				log.Printf("error: %s", rerr.Error())
 				continue
 			}
@@ -92,7 +86,7 @@ func main() {
 		}
 	}()
 	// Start the exporter
-	err = exporter.StartHandler(":9569")
+	err := exporter.StartHandler(":9569")
 	if err != nil {
 		log.Fatalf("unable to start exporter: %s", err.Error())
 	}
