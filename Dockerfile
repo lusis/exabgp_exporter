@@ -4,14 +4,12 @@ ENV CGO_ENABLED 0
 RUN cd /src && apk add git && go build -o exabgp_exporter ./cmd/exabgp_exporter && go build -o exabgp_listener ./cmd/exabgp_listener 
 
 FROM ubuntu:16.04
-
 ENV EXABGP_VERSION 4.0.10
-
 ENV HOME /root
+EXPOSE 9569
 WORKDIR /root
 RUN mkdir -p /exabgp/run
 RUN mkdir -p /exabgp/etc/exabgp
-
 RUN mkdir -p /gobgp
 
 
@@ -42,3 +40,4 @@ COPY docker/files/exabgp.conf /exabgp/etc/exabgp/exabgp.conf
 COPY docker/files/gobgp.yaml /gobgp/gobgp.yaml
 COPY docker/files/rsyslog.conf /etc/rsyslog.conf
 COPY docker/*.sh /root/
+CMD [ "/root/start-all.sh" ]

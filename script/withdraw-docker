@@ -1,0 +1,4 @@
+#!/bin/bash
+docker exec exabgp_exporter /root/withdraw.sh
+sleep 1
+curl -s http://localhost:9569/metrics | grep peer

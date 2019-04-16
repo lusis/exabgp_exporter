@@ -1,0 +1,2 @@
+#!/bin/bash
+docker run --rm -d --name exabgp_exporter -p 9569:9569 -t lusis-exabgp_exporter:4.0.10
