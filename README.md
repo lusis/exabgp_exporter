@@ -66,7 +66,7 @@ peer_state{peer_asn="64496",peer_ip="192.168.1.158",self_asn="64496",self_ip="19
 ```text
 # HELP peer_route_state shows the current peer state for a given route
 # TYPE peer_route_state gauge
-peer_route_state{family="ipv4 unicast",peer_asn="64496",peer_ip="192.168.1.158",route="192.168.88.0/24",self_asn="64496",self_ip="192.168.1.184"} 1
+peer_route_state{family="ipv4 unicast",peer_asn="64496",peer_ip="192.168.1.158",nlri="192.168.88.0/24",self_asn="64496",self_ip="192.168.1.184"} 1
 ```
 
 `1` for up. `0` for down
