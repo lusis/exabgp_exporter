@@ -1,42 +1,95 @@
-version: 2.1
-jobs:
-  test:
-    docker:
-      - image: circleci/golang:1.12
+defaults: &defaults
+    machine:
+      enabled: true
     working_directory: /tmp/{{REPO_NAME}}
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - docker_cache_{{ .Branch }}_{{ .Revision }}
       - run:
-          name: coverage
-          command: script/coverage
-      - run:
-          name: lint
-          command: script/lint
-      - run:
-          name: test
-          command: script/test
-  integration:
-    docker:
-      - image: circleci/golang:1.12
-    working_directory: /tmp/{{REPO_NAME}}
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: build-container
-          command: script/build-docker
+          name: load-container
+          command: docker load < docker-cache/built-image.tar
       - run:
           name: run-container
           command: script/run-docker
       - run:
+          name: wait-for-container
+          command: sleep 10
+      - run:
           name: test
-          command: script/test-docker
+          command: test/libs/bats/bin/bats test/*.bats
       - run:
           name: stop-container
           command: script/stop-docker
+version: 2.1
+jobs:
+  test:
+    environment:
+      TEST_RESULTS: /tmp/test-results
+    docker:
+      - image: circleci/golang:1.12
+    working_directory: /tmp/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run: mkdir -p $TEST_RESULTS
+      - run: go get github.com/jstemmer/go-junit-report
+      - run:
+          name: lint
+          command: script/lint
+      - run:
+          name: coverage
+          command: script/coverage
+      - run:
+          name: test
+          command: |
+            trap "go-junit-report <${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
+            script/test | tee ${TEST_RESULTS}/go-test.out
+      - store_artifacts: # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
+          path: /tmp/test-results
+          destination: raw-test-output
+
+      - store_test_results: # Upload test results for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
+          path: /tmp/test-results
+  build_docker_image:
+    machine:
+      enabled: true
+    working_directory: /tmp/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run:
+          name: build docker image
+          command: script/build-docker
+      - run:
+          name: Do the docker build
+          command: |
+            mkdir -p docker-cache
+            docker save -o docker-cache/built-image.tar lusis-exabgp_exporter
+      - save_cache:
+          key: docker_cache_{{ .Branch }}_{{ .Revision }}
+          paths:
+            - docker-cache
+  integration_4_0_8:
+    <<: *defaults
+    environment:
+      EXABGP_VERSION: 4.0.8
+      TEST_RESULTS: /tmp/test-results
+  integration_4_0_10:
+    <<: *defaults
+    environment:
+      EXABGP_VERSION: 4.0.10
+      TEST_RESULTS: /tmp/test-results
 workflows:
   version: 2
   build_and_test:
     jobs:
       - test
-      - integration
+      - build_docker_image:
+          requires:
+            - test
+      - integration_4_0_8:
+          requires:
+            - build_docker_image
+      - integration_4_0_10:
+          requires:
+            - build_docker_image

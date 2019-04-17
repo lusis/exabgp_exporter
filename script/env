@@ -1,0 +1,2 @@
+EXABGP_VERSION=${EXABGP_VERSION:-4.0.10}
+PATH=script/bats/bin:${PATH}
