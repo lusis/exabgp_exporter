@@ -2,7 +2,13 @@
 
 [![CircleCI](https://circleci.com/gh/lusis/exabgp_exporter.svg?style=svg)](https://circleci.com/gh/lusis/exabgp_exporter)
 
-This is a prometheus exporter for exabgp. It currently ONLY works with exabgp 4.0.10 as that had some critical fixes for json encoding.
+This is a prometheus exporter for exabgp. It currently works with the following exabgp versions:
+
+- 4.0.8
+- 4.0.10
+
+as those had some critical fixes for json encoding.
+
 
 ## Usage
 
