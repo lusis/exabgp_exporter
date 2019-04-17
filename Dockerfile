@@ -22,8 +22,11 @@ RUN apk add\
     py3-setuptools \
     socat \
     curl \
-    tmux \
-    vim
+    git \
+    musl-dev \
+    linux-headers \
+    python3-dev \
+    gcc
 
 ADD https://github.com/osrg/gobgp/releases/download/v2.3.0/gobgp_2.3.0_linux_amd64.tar.gz /gobgp.tar.gz
 RUN tar -xvf /gobgp.tar.gz -C /gobgp/
