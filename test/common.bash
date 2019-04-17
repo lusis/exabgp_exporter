@@ -1,7 +1,7 @@
 load 'libs/bats-support/load'
 load 'libs/bats-assert/load'
 get_peer_metrics() {
-	curl -s http://localhost:9569/metrics | grep peer
+	docker exec exabgp_exporter curl -s http://localhost:9569/metrics | grep peer
 }
 stop_gobgpd() {
 	docker exec exabgp_exporter s6-svc -d /var/run/s6/services/gobgp
