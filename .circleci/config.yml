@@ -18,12 +18,7 @@ defaults: &defaults
           command: sleep 10
       - run:
           name: test
-          command: test/libs/bats/bin/bats test/*.bats | tee ${TEST_RESULTS}/bats-test.tap
-      - store_artifacts:
-          path: /tmp/test-results
-          destination: raw-test-output
-      - store_test_results:
-          path: /tmp/test-results
+          command: test/libs/bats/bin/bats test/*.bats
       - run:
           name: stop-container
           command: script/stop-docker
