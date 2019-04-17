@@ -12,6 +12,9 @@ defaults: &defaults
           name: run-container
           command: script/run-docker
       - run:
+          name: wait-for-container
+          command: sleep 10
+      - run:
           name: test
           command: test/libs/bats/bin/bats test/*.bats
       - run:
@@ -26,11 +29,11 @@ jobs:
     steps:
       - checkout
       - run:
-          name: coverage
-          command: script/coverage
-      - run:
           name: lint
           command: script/lint
+      - run:
+          name: coverage
+          command: script/coverage
       - run:
           name: test
           command: script/test
