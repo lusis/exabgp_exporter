@@ -3,9 +3,8 @@ ADD . /src
 ENV CGO_ENABLED 0
 RUN cd /src && apk add git && go build -o exabgp_exporter ./cmd/exabgp_exporter && go build -o exabgp_listener ./cmd/exabgp_listener 
 
-FROM ubuntu:16.04
-ARG exabgp_version
-ENV EXABGP_VERSION $exabgp_version 
+FROM alpine
+ENV EXABGP_VERSION 4.0.10
 ENV HOME /root
 ENV S6_LOGGING 1
 EXPOSE 9569
@@ -17,19 +16,14 @@ RUN mkdir -p /gobgp
 
 COPY --from=build-env /src/exabgp_exporter /exabgp/exabgp_exporter
 COPY --from=build-env /src/exabgp_listener /exabgp/exabgp_listener
-RUN apt-get update && apt-get install -qy --no-install-recommends \
-# Python
-    python3-pip \
-    python3-setuptools \
-# Utility
-    iproute2 \
+RUN apk add\
+    bash \
+    py3-pip \
+    py3-setuptools \
     socat \
     curl \
     tmux \
-    vim-nox \
- && rm -rf /var/lib/apt/lists/* \
- && pip3 install exabgp==${EXABGP_VERSION}
-
+    vim
 
 ADD https://github.com/osrg/gobgp/releases/download/v2.3.0/gobgp_2.3.0_linux_amd64.tar.gz /gobgp.tar.gz
 RUN tar -xvf /gobgp.tar.gz -C /gobgp/
@@ -48,4 +42,4 @@ RUN mkdir /etc/services.d/gobgp
 RUN mkdir /etc/services.d/exabgp
 COPY docker/exabgp.sh /etc/services.d/exabgp/run
 COPY docker/gobgpd.sh /etc/services.d/gobgp/run
-ENTRYPOINT [ "/init" ]
+ENTRYPOINT [ "/root/install-and-init.sh" ]

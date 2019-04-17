@@ -3,11 +3,14 @@ defaults: &defaults
       - image: circleci/golang:1.12
     working_directory: /tmp/{{REPO_NAME}}
     steps:
+      - restore_cache:
+          keys:
+            - docker_cache_{{ .Branch }}_{{ .Revision }}
       - checkout
       - setup_remote_docker
       - run:
-          name: build-container
-          command: script/build-docker
+          name: load-container
+          command: docker load < docker-cache/built-image.tar
       - run:
           name: run-container
           command: script/run-docker
@@ -49,7 +52,25 @@ jobs:
 
       - store_test_results: # Upload test results for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
           path: /tmp/test-results
-
+  build_docker_image:
+    docker:
+      - image: circleci/golang:1.12
+    working_directory: /tmp/{{REPO_NAME}}
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: build docker image
+          command: script/build-docker
+      - run:
+          name: Do the docker build
+          command: |
+            mkdir -p docker-cache
+            docker save -o docker-cache/built-image.tar lusis-exabgp_exporter
+      - save_cache:
+          key: docker_cache_{{ .Branch }}_{{ .Revision }}
+          paths:
+            - docker-cache
   integration_4_0_8:
     <<: *defaults
     environment:
@@ -63,9 +84,12 @@ workflows:
   build_and_test:
     jobs:
       - test
+      - build_docker_image:
+          requires:
+            - test
       - integration_4_0_8:
           requires:
-            - test 
+            - build_docker_image
       - integration_4_0_10:
           requires:
-            - test 
+            - build_docker_image
