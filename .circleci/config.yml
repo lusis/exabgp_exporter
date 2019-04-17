@@ -1,13 +1,12 @@
 defaults: &defaults
-    docker:
-      - image: circleci/golang:1.12
+    machine:
+      enabled: true
     working_directory: /tmp/{{REPO_NAME}}
     steps:
       - checkout
       - restore_cache:
           keys:
             - docker_cache_{{ .Branch }}_{{ .Revision }}
-      - setup_remote_docker
       - run:
           name: load-container
           command: docker load < docker-cache/built-image.tar
@@ -55,12 +54,9 @@ jobs:
   build_docker_image:
     machine:
       enabled: true
-      #docker:
-      #- image: circleci/golang:1.12
     working_directory: /tmp/{{REPO_NAME}}
     steps:
       - checkout
-      - setup_remote_docker
       - run:
           name: build docker image
           command: script/build-docker
