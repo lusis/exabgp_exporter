@@ -1,21 +1,4 @@
-version: 2.1
-jobs:
-  test:
-    docker:
-      - image: circleci/golang:1.12
-    working_directory: /tmp/{{REPO_NAME}}
-    steps:
-      - checkout
-      - run:
-          name: coverage
-          command: script/coverage
-      - run:
-          name: lint
-          command: script/lint
-      - run:
-          name: test
-          command: script/test
-  integration:
+defaults: &defaults
     docker:
       - image: circleci/golang:1.12
     working_directory: /tmp/{{REPO_NAME}}
@@ -34,9 +17,39 @@ jobs:
       - run:
           name: stop-container
           command: script/stop-docker
+version: 2.1
+jobs:
+  test:
+    docker:
+      - image: circleci/golang:1.12
+    working_directory: /tmp/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run:
+          name: coverage
+          command: script/coverage
+      - run:
+          name: lint
+          command: script/lint
+      - run:
+          name: test
+          command: script/test
+  integration_4_0_8:
+    <<: *defaults
+    environment:
+      EXABGP_VERSION: 4.0.8
+  integration_4_0_10:
+    <<: *defaults
+    environment:
+      EXABGP_VERSION: 4.0.10
 workflows:
   version: 2
   build_and_test:
     jobs:
       - test
-      - integration
+      - integration_4_0_8:
+          requires:
+            - test 
+      - integration_4_0_10:
+          requires:
+            - test 

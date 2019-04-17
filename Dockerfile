@@ -4,7 +4,8 @@ ENV CGO_ENABLED 0
 RUN cd /src && apk add git && go build -o exabgp_exporter ./cmd/exabgp_exporter && go build -o exabgp_listener ./cmd/exabgp_listener 
 
 FROM ubuntu:16.04
-ENV EXABGP_VERSION 4.0.10
+ARG exabgp_version
+ENV EXABGP_VERSION $exabgp_version 
 ENV HOME /root
 ENV S6_LOGGING 1
 EXPOSE 9569
