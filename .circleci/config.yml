@@ -3,10 +3,10 @@ defaults: &defaults
       - image: circleci/golang:1.12
     working_directory: /tmp/{{REPO_NAME}}
     steps:
+      - checkout
       - restore_cache:
           keys:
             - docker_cache_{{ .Branch }}_{{ .Revision }}
-      - checkout
       - setup_remote_docker
       - run:
           name: load-container
@@ -53,8 +53,10 @@ jobs:
       - store_test_results: # Upload test results for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
           path: /tmp/test-results
   build_docker_image:
-    docker:
-      - image: circleci/golang:1.12
+    machine:
+      enabled: true
+      #docker:
+      #- image: circleci/golang:1.12
     working_directory: /tmp/{{REPO_NAME}}
     steps:
       - checkout
