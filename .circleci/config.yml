@@ -13,7 +13,7 @@ defaults: &defaults
           command: script/run-docker
       - run:
           name: test
-          command: script/test-docker
+          command: test/libs/bats/bin/bats test/*.bats
       - run:
           name: stop-container
           command: script/stop-docker
