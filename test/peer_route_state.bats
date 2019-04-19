@@ -12,17 +12,20 @@ load 'common'
 @test "verify peer routes announce - standalone" {
   run announce_routes
   sleep 5
-  run get_peer_metrics
   run get_peer_metrics 9570
   assert_line --regexp '^exabgp_state_route\{.*\} 1$'
 }
 
 @test "verify count of peer routes - embedded" {
+  run announce_routes
+  sleep 5
   run get_route_count
   assert_output '32'
 }
 
 @test "verify count of peer routes - standalone" {
+  run announce_routes
+  sleep 5
   run get_route_count 9570
   assert_output '32'
 }
