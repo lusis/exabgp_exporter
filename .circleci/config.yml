@@ -19,10 +19,9 @@ defaults: &defaults
           command: sleep 10
       - run:
           name: test
-          command: test/libs/bats/bin/bats test/*.bats
-      - run:
-          name: collect-docker-logs
-          command: docker logs exabgp_exporter > ${TEST_RESULTS}/docker-${EXABGP_VERSION}.log
+          command: |
+            trap "docker logs exabgp_exporter > ${TEST_RESULTS}/docker-${EXABGP_VERSION.log}" EXIT
+            test/libs/bats/bin/bats test/*.bats
       - run:
           name: stop-container
           command: script/stop-docker
