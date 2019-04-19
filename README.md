@@ -33,7 +33,8 @@ If you want to embed the exporter inside exabgp you'll need to make the followin
 
 ```text
 process prometheus_exporter {
-        run /path/to/exabgp_exporter stream;
+        run /path/to/exabgp_exporter --log.format="logger:stderr?json=true" stream;
+	# alternately run /path/to/exabgp_exporter --log-format="logger:syslog?appname=exabgp_exporter" stream;
         encoder json;
 }
 ```
@@ -59,6 +60,11 @@ Either in your template or neighbor definition you'll need to add a new api sect
                 }
         }
 ```
+
+### Similarities between the two modes
+
+Both modes listen on the documented port of `9576`. The scraped output is the same between each.
+Logging can be configured through the flags but if you're using the `stream` mode you should never set that to `stdout` as the data will attempt to be interpreted by exabgp.
 
 ### Differences between the modes
 

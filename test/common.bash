@@ -3,12 +3,12 @@ load 'libs/bats-assert/load'
 
 
 get_exabgp_metrics() {
-	local port=${1:-9569}
+	local port=${1:-9576}
 	docker exec exabgp_exporter curl -s http://localhost:${port}/metrics | grep exabgp
 }
 
 get_peer_metrics() {
-	local port=${1:-9569}
+	local port=${1:-9576}
 	docker exec exabgp_exporter curl -s http://localhost:${port}/metrics | grep peer
 }
 
@@ -29,6 +29,6 @@ announce_routes() {
 }
 
 get_route_count() {
-	local port=${1:-9569}
+	local port=${1:-9576}
 	get_peer_metrics ${port}| grep -c exabgp_state_route\{
 }

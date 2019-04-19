@@ -25,7 +25,7 @@ func main() {
 		shellCmd      = kingpin.Command("standalone", "run in standalone mode (calls exabgpcli on each scrape)").Default()
 		exabgpcmd     = shellCmd.Flag("exabgp.cli.command", "exabgpcli command").Default(exaBGPCLICommand).String()
 		exabgproot    = shellCmd.Flag("exabgp.root", "value of --root to be passed to exabgpcli").Default(exaBGPCLIRoot).String()
-		listenAddress = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9569").String()
+		listenAddress = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9576").String()
 		metricsPath   = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
 	)
 

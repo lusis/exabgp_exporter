@@ -7,7 +7,7 @@ FROM alpine
 ENV EXABGP_VERSION 4.0.10
 ENV HOME /root
 ENV S6_LOGGING 1
-EXPOSE 9569
+EXPOSE 9576
 WORKDIR /root
 RUN mkdir -p /exabgp/run
 RUN mkdir -p /exabgp/etc/exabgp
