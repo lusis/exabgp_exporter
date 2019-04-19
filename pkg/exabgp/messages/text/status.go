@@ -48,7 +48,12 @@ func SummaryEntryFromString(s string) (*NeighborSummary, error) {
 	} else {
 		ns.Status = "up"
 	}
+	// we need to account for pre-4.0.8 summary reporting for down connections
+	if md["state"] != "established" {
+		ns.Status = "down"
+	}
 	ns.State = md["state"]
+
 	ns.Sent, _ = strconv.Atoi(md["sent"])
 	ns.Received, _ = strconv.Atoi(md["recvd"])
 	return ns, nil

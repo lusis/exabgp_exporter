@@ -4,6 +4,7 @@ defaults: &defaults
     working_directory: /tmp/{{REPO_NAME}}
     steps:
       - checkout
+      - run: mkdir -p $TEST_RESULTS
       - restore_cache:
           keys:
             - docker_cache_{{ .Branch }}_{{ .Revision }}
@@ -20,8 +21,14 @@ defaults: &defaults
           name: test
           command: test/libs/bats/bin/bats test/*.bats
       - run:
+          name: collect-docker-logs
+          command: docker logs exabgp_export > ${TEST_RESULTS}/docker-${EXABGP_VERSION}.log
+      - run:
           name: stop-container
           command: script/stop-docker
+      - store_artifacts: # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
+          path: /tmp/test-results
+          destination: raw-test-output
 version: 2.1
 jobs:
   test:
@@ -73,26 +80,32 @@ jobs:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.4
+      TEST_RESULTS: /tmp/test-results
   integration_4_0_5:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.5
+      TEST_RESULTS: /tmp/test-results
   integration_4_0_6:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.6
+      TEST_RESULTS: /tmp/test-results
   integration_4_0_8:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.8
+      TEST_RESULTS: /tmp/test-results
   integration_4_0_9:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.9
+      TEST_RESULTS: /tmp/test-results
   integration_4_0_10:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.10
+      TEST_RESULTS: /tmp/test-results
 workflows:
   version: 2
   build_and_test:
