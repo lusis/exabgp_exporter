@@ -22,7 +22,7 @@ defaults: &defaults
           command: test/libs/bats/bin/bats test/*.bats
       - run:
           name: collect-docker-logs
-          command: docker logs exabgp_export > ${TEST_RESULTS}/docker-${EXABGP_VERSION}.log
+          command: docker logs exabgp_exporter > ${TEST_RESULTS}/docker-${EXABGP_VERSION}.log
       - run:
           name: stop-container
           command: script/stop-docker
