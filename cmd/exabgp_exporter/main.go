@@ -2,92 +2,65 @@ package main
 
 import (
 	"bufio"
-	"fmt"
-	"io"
-	"log"
+	"net/http"
 	"os"
-	"strings"
 
-	"github.com/lusis/exabgp_exporter/pkg/exabgp"
 	"github.com/lusis/exabgp_exporter/pkg/exporter"
+	"gopkg.in/alecthomas/kingpin.v2"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/common/log"
+)
+
+var (
+	exaBGPCLICommand = "exabgpcli"
+	exaBGPCLIRoot    = "/etc/exabgp"
 )
 
 func main() {
-	log.SetOutput(os.Stderr)
-	log.SetFlags(0)
-	reader := bufio.NewReader(os.Stdin)
 
-	go func() {
-		for {
-			line, _, rerr := reader.ReadLine()
-			if rerr != nil && rerr != io.EOF {
-				log.Printf("error: %s", rerr.Error())
-				continue
-			}
-			evt, perr := exabgp.ParseEvent(line)
-			if perr != nil {
-				log.Printf("unable to parse line: %s", perr.Error())
-				log.Printf("failing line: %s", line)
-				continue
-			}
-			// parse into metrics
-			status := exabgp.GetStatus()
-			var labels = map[string]string{
-				"peer_ip":  evt.Peer.IP,
-				"self_ip":  evt.Self.IP,
-				"peer_asn": fmt.Sprintf("%d", evt.Peer.ASN),
-				"self_asn": fmt.Sprintf("%d", evt.Self.ASN),
-			}
-			var metric int
-			switch status {
-			case "down":
-				metric = 0
-				if strings.Contains(exabgp.GetStatusReason(), "reset") {
-					rlabels := map[string]string{}
-					for k, v := range labels {
-						rlabels[k] = v
-					}
-					rlabels["reason"] = exabgp.GetStatusReason()
-					exporter.PeerResetCountMetric.With(rlabels).Add(float64(1))
-				}
-			case "unknown":
-				metric = 0
-			default:
-				metric = 1
-			}
-			exporter.PeerStateMetric.With(labels).Set(float64(metric))
+	var (
+		_             = kingpin.Command("stream", "run in stream mode (appropriate for embedding as an exabgp process)")
+		shellCmd      = kingpin.Command("standalone", "run in standalone mode (calls exabgpcli on each scrape)").Default()
+		exabgpcmd     = shellCmd.Flag("exabgp.cli.command", "exabgpcli command").Default(exaBGPCLICommand).String()
+		exabgproot    = shellCmd.Flag("exabgp.root", "value of --root to be passed to exabgpcli").Default(exaBGPCLIRoot).String()
+		listenAddress = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9569").String()
+		metricsPath   = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
+	)
 
-			// right now we only care about messages we send
-			if evt.Direction == "send" {
-				// uniqueness is peer_ip, local_ip, peer_as, remote_as, nlri (an nlri is essentially a given network/netmask)
-				// we set it to either 0 or 1 based on withdrawn vs announced
-				announcements := evt.GetAnnouncements()
-				if announcements != nil {
-					for _, v := range announcements.IPV4Unicast {
-						labels["family"] = "ipv4 unicast"
-						for _, r := range v.NLRI {
-							labels["nlri"] = r
-							exporter.PeerRouteStateMetric.With(labels).Set(float64(1))
-						}
-					}
-				}
+	log.AddFlags(kingpin.CommandLine)
 
-				withdraws := evt.GetWithdrawals()
-				if withdraws != nil {
-					for _, w := range withdraws.IPv4Unicast {
-						for _, r := range w.NLRI {
-							labels["family"] = "ipv4 unicast"
-							labels["nlri"] = r
-							exporter.PeerRouteStateMetric.With(labels).Set(float64(0))
-						}
-					}
-				}
-			}
+	kingpin.HelpFlag.Short('h')
+
+	switch kingpin.Parse() {
+	case "standalone":
+		log.Infof("starting exabgp_exporter in standalone mode using '%s --root %s'", *exabgpcmd, *exabgproot)
+		e, err := exporter.NewStandaloneExporter(*exabgpcmd, *exabgproot)
+		if err != nil {
+			log.Fatal(err)
 		}
-	}()
-	// Start the exporter
-	err := exporter.StartHandler(":9569")
-	if err != nil {
-		log.Fatalf("unable to start exporter: %s", err.Error())
+		prometheus.MustRegister(e)
+	case "stream":
+		log.Info("starting exabgp_exporter in stream mode")
+		e, err := exporter.NewEmbeddedExporter()
+		if err != nil {
+			log.Fatal(err)
+		}
+		prometheus.MustRegister(e)
+		reader := bufio.NewReader(os.Stdin)
+		e.Run(reader)
 	}
+	log.Infoln("Listening on", *listenAddress)
+	http.Handle(*metricsPath, promhttp.Handler())
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(`<html>
+             <head><title>Haproxy Exporter</title></head>
+             <body>
+             <h1>Haproxy Exporter</h1>
+             <p><a href='` + *metricsPath + `'>Metrics</a></p>
+             </body>
+             </html>`))
+	})
+	log.Fatal(http.ListenAndServe(*listenAddress, nil))
 }

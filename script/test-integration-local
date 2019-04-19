@@ -19,10 +19,11 @@ for v in 4 5 6 8 9 10; do
 		script/stop-docker
 		continue
 	fi
+	docker logs exabgp_exporter > /tmp/exabgp_export_docker_4_0_$v.log
 	script/stop-docker
 done
 
-echo "testing exabgp git master"
-EXABGP_VERSION=master script/run-docker
-test/libs/bats/bin/bats -t test/*.bats || echo "exabgp git test failed"
-script/stop-docker
+#echo "testing exabgp git master"
+#EXABGP_VERSION=master script/run-docker
+#test/libs/bats/bin/bats -t test/*.bats || echo "exabgp git test failed"
+#script/stop-docker

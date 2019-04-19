@@ -1,26 +1,42 @@
 #!/usr/bin/env ./test/libs/bats/bin/bats
 load 'common'
 
-@test "verify peer_state is captured" {
+@test "verify peer_state is captured - embedded" {
   run get_peer_metrics
-  assert_line --regexp '^peer_state\{.*\} [0-9]$'
+  assert_line --regexp '^exabgp_state_peer\{.*\} [0|1]$'
 }
 
-@test "verify peer_state is down" {
+@test "verify peer_state is captured - standalone" {
+  run get_peer_metrics 9570
+  assert_line --regexp '^exabgp_state_peer\{.*\} [0|1]$'
+}
+
+@test "verify peer_state is down - embedded" {
   run stop_gobgpd
   sleep 2
   run get_peer_metrics
-  assert_line --regexp '^peer_state\{.*\} 0$'
+  assert_line --regexp '^exabgp_state_peer\{.*\} 0$'
 }
 
-@test "verify peer_resets are captured" {
-  run get_peer_metrics
-  assert_line --regexp '^peer_resets\{.*\} [0-9]+$'
+@test "verify peer_state is down - standalone" {
+  run stop_gobgpd
+  sleep 2
+  run get_peer_metrics 9570
+  assert_line --regexp '^exabgp_state_peer\{.*\} 0$'
 }
 
-@test "verify peer_state is up" {
+@test "verify peer_state is up - embedded" {
   run start_gobgpd
   sleep 60
   run get_peer_metrics
-  assert_line --regexp '^peer_state\{.*\} 1$'
+  assert_line --regexp '^exabgp_state_peer\{.*\} 1$'
+  run get_peer_metrics 9570
+  assert_line --regexp '^exabgp_state_peer\{.*\} 1$'
+}
+
+@test "verify peer_state is up - standalone" {
+  run start_gobgpd
+  sleep 60
+  run get_peer_metrics 9570
+  assert_line --regexp '^exabgp_state_peer\{.*\} 1$'
 }

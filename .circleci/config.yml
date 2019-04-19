@@ -4,6 +4,7 @@ defaults: &defaults
     working_directory: /tmp/{{REPO_NAME}}
     steps:
       - checkout
+      - run: mkdir -p $TEST_RESULTS
       - restore_cache:
           keys:
             - docker_cache_{{ .Branch }}_{{ .Revision }}
@@ -18,10 +19,15 @@ defaults: &defaults
           command: sleep 10
       - run:
           name: test
-          command: test/libs/bats/bin/bats test/*.bats
+          command: |
+            trap "docker logs exabgp_exporter > ${TEST_RESULTS}/docker-${EXABGP_VERSION}.log" EXIT
+            test/libs/bats/bin/bats test/*.bats
       - run:
           name: stop-container
           command: script/stop-docker
+      - store_artifacts: # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
+          path: /tmp/test-results
+          destination: raw-test-output
 version: 2.1
 jobs:
   test:
@@ -69,30 +75,36 @@ jobs:
           key: docker_cache_{{ .Branch }}_{{ .Revision }}
           paths:
             - docker-cache
-  integration_4_0_4:
+  v4_0_4:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.4
-  integration_4_0_5:
+      TEST_RESULTS: /tmp/test-results
+  v4_0_5:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.5
-  integration_4_0_6:
+      TEST_RESULTS: /tmp/test-results
+  v4_0_6:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.6
-  integration_4_0_8:
+      TEST_RESULTS: /tmp/test-results
+  v4_0_8:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.8
-  integration_4_0_9:
+      TEST_RESULTS: /tmp/test-results
+  v4_0_9:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.9
-  integration_4_0_10:
+      TEST_RESULTS: /tmp/test-results
+  v4_0_10:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.10
+      TEST_RESULTS: /tmp/test-results
 workflows:
   version: 2
   build_and_test:
@@ -101,21 +113,21 @@ workflows:
       - build_docker_image:
           requires:
             - test
-      - integration_4_0_4:
+      - v4_0_4:
           requires:
             - build_docker_image
-      - integration_4_0_5:
+      - v4_0_5:
           requires:
             - build_docker_image
-      - integration_4_0_6:
+      - v4_0_6:
           requires:
             - build_docker_image
-      - integration_4_0_8:
+      - v4_0_8:
           requires:
             - build_docker_image
-      - integration_4_0_9:
+      - v4_0_9:
           requires:
             - build_docker_image
-      - integration_4_0_10:
+      - v4_0_10:
           requires:
             - build_docker_image

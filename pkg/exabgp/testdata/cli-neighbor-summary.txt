@@ -1,0 +1,2 @@
+Peer            AS        up/down state       |     #sent     #recvd
+127.0.0.1       64496     0:32:58 established          42          0
