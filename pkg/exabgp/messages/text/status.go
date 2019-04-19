@@ -15,7 +15,7 @@ Peer            AS        up/down state       |     #sent     #recvd
 192.168.1.1     64496     0:00:01 established          45          0
 */
 var summaryHeaderLine = `Peer            AS        up/down state       |     #sent     #recvd`
-var rxSummary = `(?P<peer_ip>\S+)\s+(?P<peer_as>\d+)\s+(?P<status>\S+)\s+(?P<state>\S+)\s+(?P<sent>\d+)\s+(?P<recvd>\d+)$`
+var rxSummary = `(?P<peer_ip>\S+)\s+(?P<peer_as>\d+)\s+(?P<status>.*)\s+(?P<state>idle|active|connect|opensent|openconfirm|established)\s+(?P<sent>\d+)\s+(?P<recvd>\d+)$`
 
 func parseSummaryLine(s string) (map[string]string, error) {
 	md := make(map[string]string)
