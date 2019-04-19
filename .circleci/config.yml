@@ -75,32 +75,32 @@ jobs:
           key: docker_cache_{{ .Branch }}_{{ .Revision }}
           paths:
             - docker-cache
-  integration_4_0_4:
+  v4_0_4:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.4
       TEST_RESULTS: /tmp/test-results
-  integration_4_0_5:
+  v4_0_5:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.5
       TEST_RESULTS: /tmp/test-results
-  integration_4_0_6:
+  v4_0_6:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.6
       TEST_RESULTS: /tmp/test-results
-  integration_4_0_8:
+  v4_0_8:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.8
       TEST_RESULTS: /tmp/test-results
-  integration_4_0_9:
+  v4_0_9:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.9
       TEST_RESULTS: /tmp/test-results
-  integration_4_0_10:
+  v4_0_10:
     <<: *defaults
     environment:
       EXABGP_VERSION: 4.0.10
@@ -113,21 +113,21 @@ workflows:
       - build_docker_image:
           requires:
             - test
-      - integration_4_0_4:
+      - v4_0_4:
           requires:
             - build_docker_image
-      - integration_4_0_5:
+      - v4_0_5:
           requires:
             - build_docker_image
-      - integration_4_0_6:
+      - v4_0_6:
           requires:
             - build_docker_image
-      - integration_4_0_8:
+      - v4_0_8:
           requires:
             - build_docker_image
-      - integration_4_0_9:
+      - v4_0_9:
           requires:
             - build_docker_image
-      - integration_4_0_10:
+      - v4_0_10:
           requires:
             - build_docker_image

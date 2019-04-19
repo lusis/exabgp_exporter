@@ -45,7 +45,7 @@ func (e *StandaloneExporter) Describe(ch chan<- *prometheus.Desc) {
 func (e *StandaloneExporter) Collect(ch chan<- prometheus.Metric) {
 	e.mutex.Lock() // To protect metrics from concurrent collects.
 	defer e.mutex.Unlock()
-	e.totalScrapes.Inc()
+	e.BaseExporter.totalScrapes.Inc()
 	ribs, peers, err := e.scrape(ch)
 	if err != nil {
 		log.Error(err.Error())
