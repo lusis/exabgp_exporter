@@ -1,6 +1,6 @@
 # exabgp_exporter
 
-[![CircleCI](https://circleci.com/gh/lusis/exabgp_exporter.svg?style=svg)](https://circleci.com/gh/lusis/exabgp_exporter)
+![CircleCI](https://img.shields.io/circleci/project/github/lusis/exabgp_exporter/master.svg?style=for-the-badge)
 
 This is a prometheus exporter for exabgp. It currently works with the following exabgp versions (tested as part of CI):
 
