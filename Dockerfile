@@ -43,6 +43,10 @@ COPY docker/files/rsyslog.conf /etc/rsyslog.conf
 COPY docker/*.sh /root/
 RUN mkdir /etc/services.d/gobgp
 RUN mkdir /etc/services.d/exabgp
+RUN mkdir /etc/services.d/exabgp_exporter_good
+RUN mkdir /etc/services.d/exabgp_exporter_bad
 COPY docker/exabgp.sh /etc/services.d/exabgp/run
 COPY docker/gobgpd.sh /etc/services.d/gobgp/run
+COPY docker/exporter_valid.sh /etc/services.d/exabgp_exporter_good/run
+COPY docker/exporter_invalid.sh /etc/services.d/exabgp_exporter_bad/run
 ENTRYPOINT [ "/root/install-and-init.sh" ]

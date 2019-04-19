@@ -172,7 +172,7 @@ func ParseEvent(data []byte) (*Event, error) {
 			reason: event.Peer.Reason,
 		}
 	case "notification":
-		// not sure what to do with these just yet
+		// nothing yet
 	case "open":
 		// we don't do these right now
 	case "keepalive":

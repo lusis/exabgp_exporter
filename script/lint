@@ -6,6 +6,6 @@ if [ "${CI}" ]; then
     tar -zxvf golangci-lint-${LINTVER}-linux-amd64.tar.gz
     LINTCMD="./golangci-lint-1.16.0-linux-amd64/golangci-lint"
 else
-    go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+    go get github.com/golangci/golangci-lint/cmd/golangci-lint
 fi
 ${LINTCMD} run
