@@ -64,6 +64,9 @@ jobs:
           root: .
           paths:
               - .build
+      - store_artifacts: # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
+          path: .build/
+          destination: binaries/{{ .Branch }}
   build_tarballs:
     docker:
       - image: circleci/golang:1.12.4
@@ -77,7 +80,7 @@ jobs:
             for d in .build/*/; do
               arch=$(basename $d)
               version=$(cat .build/.version)
-              tar -cvf .tarballs/exabgp_exporter-${version}.${arch}.tar.gz -C .build --transform s/${arch}/exabgp_exporter-${version}.${arch}/ ${arch}
+              tar -cvf .tarballs/exabgp_exporter-${version}.${arch}.tar.gz -C .build --transform s/${arch}/exabgp_exporter-v${version}.${arch}/ ${arch}
             done
       - persist_to_workspace:
           root: .
@@ -157,8 +160,10 @@ workflows:
             - test
       - build_tarballs:
           filters:
+            branches:
+              ignore: /.*/
             tags:
-              only: /^\d+\.\d+\.\d+$/
+              only: /^v\d+\.\d+\.\d+$/
           requires:
             - build_binaries
       - release:
@@ -166,7 +171,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /^\d+\.\d+\.\d+$/
+              only: /^v\d+\.\d+\.\d+$/
           requires:
             - build_tarballs
       - v4_0_4:
