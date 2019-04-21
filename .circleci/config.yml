@@ -36,7 +36,7 @@ jobs:
       - image: circleci/golang:1.12.4
     steps:
       - checkout
-      - run: mkdir -p $TEST_RESULTS
+      - run: mkdir -p ${TEST_RESULTS}
       - run: go get github.com/jstemmer/go-junit-report
       - run:
           name: lint
@@ -71,16 +71,13 @@ jobs:
       - attach_workspace:
           at: .
       - run:
-          name: install releaser
-          command: go get github.com/tcnksm/ghr
-      - run:
           name: build-tarballs
           command: |
             mkdir .tarballs
             for d in .build/*/; do
               arch=$(basename $d)
               version=$(cat .build/.version)
-              tar -cvf .tarballs/exabgp_exporter-${version}.${arch}.tar.gz -s /${arch}/exabgp_exporter-${version}.${arch}/ ${arch}
+              tar -cvf .tarballs/exabgp_exporter-${version}.${arch}.tar.gz -C .build --transform s/${arch}/exabgp_exporter-${version}.${arch}/ ${arch}
             done
       - persist_to_workspace:
           root: .
@@ -93,9 +90,12 @@ jobs:
       - attach_workspace:
           at: .
       - run:
+          name: install releaser
+          command: go get github.com/tcnksm/ghr
+      - run:
           name: github-release
           command: |
-            VERSION=$(cat .version)
+            VERSION=$(cat .build/version)
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} .tarballs/
   build_docker_image:
     machine:
@@ -156,23 +156,34 @@ workflows:
           requires:
             - test
       - build_tarballs:
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
           requires:
             - build_binaries
-      # - v4_0_4:
-      #     requires:
-      #       - build_docker_image
-      # - v4_0_5:
-      #     requires:
-      #       - build_docker_image
-      # - v4_0_6:
-      #     requires:
-      #       - build_docker_image
-      # - v4_0_8:
-      #     requires:
-      #       - build_docker_image
-      # - v4_0_9:
-      #     requires:
-      #       - build_docker_image
-      # - v4_0_10:
-      #     requires:
-      #       - build_docker_image
+      - release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/
+          requires:
+            - build_tarballs
+      - v4_0_4:
+          requires:
+            - build_docker_image
+      - v4_0_5:
+          requires:
+            - build_docker_image
+      - v4_0_6:
+          requires:
+            - build_docker_image
+      - v4_0_8:
+          requires:
+            - build_docker_image
+      - v4_0_9:
+          requires:
+            - build_docker_image
+      - v4_0_10:
+          requires:
+            - build_docker_image
