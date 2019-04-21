@@ -64,11 +64,13 @@ jobs:
       - checkout
       - run: script/build-binaries
       - persist_to_workspace:
+          root: .
           paths:
               - .build
   build_tarballs:
     docker:
       - image: circleci/golang:1.12.4
+    working_directory: /tmp/{{REPO_NAME}}
     steps:
       - attach_workspace:
           at: .build
