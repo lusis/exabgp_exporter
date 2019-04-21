@@ -1,6 +1,9 @@
 #!/bin/bash
 set -Eeuo pipefail
 
+# shellcheck disable=SC1091
+source script/env
+
 trap "script/stop-docker || echo 'unable to clean up docker'" EXIT
 echo "building docker image"
 if ! script/build-docker; then
@@ -13,17 +16,12 @@ for v in 4 5 6 8 9 10; do
 	sleep 10
 	echo "testing version 4.0.$v"
 	tmplog=$(mktemp -u -t exabgp_exporter_XXXXXXXXXX)
-	if ! test/libs/bats/bin/bats -t test/*.bats > ${tmplog}; then
+	if ! test/libs/bats/bin/bats -t test/*.bats > "${tmplog}"; then
 		echo "failed testing 4.0.$v"
-		cat ${tmplog}
+		cat "${tmplog}"
 		script/stop-docker
 		continue
 	fi
 	docker logs exabgp_exporter > /tmp/exabgp_export_docker_4_0_$v.log
 	script/stop-docker
 done
-
-#echo "testing exabgp git master"
-#EXABGP_VERSION=master script/run-docker
-#test/libs/bats/bin/bats -t test/*.bats || echo "exabgp git test failed"
-#script/stop-docker

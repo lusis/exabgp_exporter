@@ -11,6 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
+	"github.com/prometheus/common/version"
 )
 
 var (
@@ -30,24 +31,28 @@ func main() {
 	)
 
 	log.AddFlags(kingpin.CommandLine)
-
+	kingpin.Version(version.Print("exabgp_exporter"))
 	kingpin.HelpFlag.Short('h')
 
 	switch kingpin.Parse() {
 	case "standalone":
-		log.Infof("starting exabgp_exporter in standalone mode using '%s --root %s'", *exabgpcmd, *exabgproot)
+		log.Infof("starting exabgp_exporter %s in standalone mode using '%s --root %s'", version.Info(), *exabgpcmd, *exabgproot)
+		log.Infof("build context: %s", version.BuildContext())
 		e, err := exporter.NewStandaloneExporter(*exabgpcmd, *exabgproot)
 		if err != nil {
 			log.Fatal(err)
 		}
 		prometheus.MustRegister(e)
+		prometheus.MustRegister(version.NewCollector("haproxy_exporter"))
 	case "stream":
-		log.Info("starting exabgp_exporter in stream mode")
+		log.Infof("starting exabgp_exporter %s in stream mode", version.Info())
+		log.Infof("build context: %s", version.BuildContext())
 		e, err := exporter.NewEmbeddedExporter()
 		if err != nil {
 			log.Fatal(err)
 		}
 		prometheus.MustRegister(e)
+		prometheus.MustRegister(version.NewCollector("haproxy_exporter"))
 		reader := bufio.NewReader(os.Stdin)
 		e.Run(reader)
 	}

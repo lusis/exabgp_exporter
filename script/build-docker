@@ -1,3 +1,6 @@
 #!/bin/bash
-. script/env
+set -Eeuo pipefail
+# shellcheck disable=SC1091
+source script/env
+
 docker build --rm -q -t lusis-exabgp_exporter .

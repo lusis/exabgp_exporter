@@ -1,0 +1,24 @@
+#!/bin/bash
+set -Eeuo pipefail
+# shellcheck disable=SC1091
+source script/env
+
+for platform in ${BUILDTARGETS}; do
+	goos=$(echo "${platform}" | cut -d "/" -f1)
+	goarch=$(echo "${platform}" | cut -d "/" -f2)
+	targetdir=".build/${goos}-${goarch}"
+	if [[ ! -d .build ]]; then
+		mkdir .build
+	fi
+	if [[ ! -d ${targetdir} ]]; then
+		mkdir "${targetdir}"
+	fi
+	echo "${VERSION}" > .build/.version
+	echo "building ${VERSION} for ${platform}"
+	CGO_ENABLED=0 GOOS=${goos} GOARCH=${goarch} \
+	  go build \
+	  -o "${targetdir}/exabgp_exporter" \
+	  -ldflags "${LD_FLAGS[@]}" \
+	  -a -tags netgo \
+	  ./cmd/exabgp_exporter 1>/dev/null
+done

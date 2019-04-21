@@ -1,2 +1,3 @@
 #!/bin/bash
+set -Eeuo pipefail
 curl -s http://localhost:9569/metrics | grep peer

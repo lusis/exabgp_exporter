@@ -34,7 +34,7 @@ jobs:
     environment:
       TEST_RESULTS: /tmp/test-results
     docker:
-      - image: circleci/golang:1.12
+      - image: circleci/golang:1.12.4
     working_directory: /tmp/{{REPO_NAME}}
     steps:
       - checkout
@@ -54,9 +54,52 @@ jobs:
       - store_artifacts: # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
           path: /tmp/test-results
           destination: raw-test-output
-
       - store_test_results: # Upload test results for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
           path: /tmp/test-results
+  build_binaries:
+    docker:
+      - image: circleci/golang:1.12.4
+    working_directory: /tmp/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run: script/build-binaries
+      - persist_to_workspace:
+          root: .
+          paths:
+              - .build
+  build_tarballs:
+    docker:
+      - image: circleci/golang:1.12.4
+    steps:
+      - attach_workspace:
+          at: .build
+      - run:
+          name: install releaser
+          command: go get github.com/tcnksm/ghr
+      - run:
+          name: build-tarballs
+          command: |
+            mkdir .tarballs
+            for d in .build/*/; do
+              arch=$(basename $d)
+              version=$(cat .build/.version)
+              tar -cvf .tarballs/exabgp_exporter-${version}.${arch}.tar.gz -s /${arch}/exabgp_exporter-${version}.${arch}/ ${arch}
+            done
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .tarballs
+  release:
+    docker:
+      - image: circleci/golang:1.12.4
+    steps:
+      - attach_workspace:
+          at: .tarballs
+      - run:
+          name: github-release
+          command: |
+            VERSION=$(cat .version)
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} .tarballs/
   build_docker_image:
     machine:
       enabled: true
@@ -113,6 +156,12 @@ workflows:
       - build_docker_image:
           requires:
             - test
+      - build_binaries:
+          requires:
+            - test
+      - build_tarballs:
+          requires:
+            - build_binaries
       - v4_0_4:
           requires:
             - build_docker_image
