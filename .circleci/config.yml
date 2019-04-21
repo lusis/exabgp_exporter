@@ -1,7 +1,6 @@
 defaults: &defaults
     machine:
       enabled: true
-    working_directory: /tmp/{{ REPO_NAME }}
     steps:
       - checkout
       - run: mkdir -p $TEST_RESULTS
@@ -35,7 +34,6 @@ jobs:
       TEST_RESULTS: /tmp/test-results
     docker:
       - image: circleci/golang:1.12.4
-    working_directory: /tmp/{{ REPO_NAME }}
     steps:
       - checkout
       - run: mkdir -p $TEST_RESULTS
@@ -59,7 +57,6 @@ jobs:
   build_binaries:
     docker:
       - image: circleci/golang:1.12.4
-    working_directory: /tmp/{{ REPO_NAME }}
     steps:
       - checkout
       - run: script/build-binaries
@@ -70,7 +67,6 @@ jobs:
   build_tarballs:
     docker:
       - image: circleci/golang:1.12.4
-    working_directory: /tmp/{{ REPO_NAME }}
     steps:
       - attach_workspace:
           at: .
@@ -104,7 +100,6 @@ jobs:
   build_docker_image:
     machine:
       enabled: true
-    working_directory: /tmp/{{ REPO_NAME }}
     steps:
       - checkout
       - run:
