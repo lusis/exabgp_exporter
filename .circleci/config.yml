@@ -1,7 +1,7 @@
 defaults: &defaults
     machine:
       enabled: true
-    working_directory: /tmp/{{REPO_NAME}}
+    working_directory: /tmp/{{ REPO_NAME }}
     steps:
       - checkout
       - run: mkdir -p $TEST_RESULTS
@@ -35,7 +35,7 @@ jobs:
       TEST_RESULTS: /tmp/test-results
     docker:
       - image: circleci/golang:1.12.4
-    working_directory: /tmp/{{REPO_NAME}}
+    working_directory: /tmp/{{ REPO_NAME }}
     steps:
       - checkout
       - run: mkdir -p $TEST_RESULTS
@@ -59,7 +59,7 @@ jobs:
   build_binaries:
     docker:
       - image: circleci/golang:1.12.4
-    working_directory: /tmp/{{REPO_NAME}}
+    working_directory: /tmp/{{ REPO_NAME }}
     steps:
       - checkout
       - run: script/build-binaries
@@ -70,10 +70,10 @@ jobs:
   build_tarballs:
     docker:
       - image: circleci/golang:1.12.4
-    working_directory: /tmp/{{REPO_NAME}}
+    working_directory: /tmp/{{ REPO_NAME }}
     steps:
       - attach_workspace:
-          at: .build
+          at: .
       - run:
           name: install releaser
           command: go get github.com/tcnksm/ghr
@@ -95,7 +95,7 @@ jobs:
       - image: circleci/golang:1.12.4
     steps:
       - attach_workspace:
-          at: .tarballs
+          at: .
       - run:
           name: github-release
           command: |
@@ -104,7 +104,7 @@ jobs:
   build_docker_image:
     machine:
       enabled: true
-    working_directory: /tmp/{{REPO_NAME}}
+    working_directory: /tmp/{{ REPO_NAME }}
     steps:
       - checkout
       - run:
