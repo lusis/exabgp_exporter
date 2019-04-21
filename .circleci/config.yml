@@ -64,7 +64,6 @@ jobs:
       - checkout
       - run: script/build-binaries
       - persist_to_workspace:
-          root: .
           paths:
               - .build
   build_tarballs:
@@ -162,21 +161,21 @@ workflows:
       - build_tarballs:
           requires:
             - build_binaries
-      - v4_0_4:
-          requires:
-            - build_docker_image
-      - v4_0_5:
-          requires:
-            - build_docker_image
-      - v4_0_6:
-          requires:
-            - build_docker_image
-      - v4_0_8:
-          requires:
-            - build_docker_image
-      - v4_0_9:
-          requires:
-            - build_docker_image
-      - v4_0_10:
-          requires:
-            - build_docker_image
+      # - v4_0_4:
+      #     requires:
+      #       - build_docker_image
+      # - v4_0_5:
+      #     requires:
+      #       - build_docker_image
+      # - v4_0_6:
+      #     requires:
+      #       - build_docker_image
+      # - v4_0_8:
+      #     requires:
+      #       - build_docker_image
+      # - v4_0_9:
+      #     requires:
+      #       - build_docker_image
+      # - v4_0_10:
+      #     requires:
+      #       - build_docker_image
