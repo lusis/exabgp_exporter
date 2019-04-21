@@ -1,2 +1,3 @@
-exabgp_exporter
-exabgp_listener
+.build/
+.tarballs/
+*.tar.gz

@@ -1,2 +1,7 @@
 #!/bin/bash
+set -Eeuo pipefail
+
+# shellcheck disable=SC1091
+source script/env
+
 docker exec exabgp_exporter /root/withdraw.sh
