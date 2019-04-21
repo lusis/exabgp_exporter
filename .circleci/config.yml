@@ -151,11 +151,17 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - test
+      - test:
+          filters:
+            tags:
+              only: /.*/
       - build_docker_image:
           requires:
             - test
       - build_binaries:
+          filters:
+            tags:
+              only: /.*/
           requires:
             - test
       - build_tarballs:
