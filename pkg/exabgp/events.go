@@ -181,7 +181,7 @@ func ParseEvent(data []byte) (*Event, error) {
 	case "signal":
 		// nothing yet
 	default:
-		return nil, fmt.Errorf("Cannot handle event type: %s [data: %s]", jsonEvent.Type, data)
+		return nil, fmt.Errorf("cannot handle event type: %s [data: %s]", jsonEvent.Type, data)
 	}
 	return event, nil
 }
