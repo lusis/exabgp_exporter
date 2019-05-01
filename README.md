@@ -136,7 +136,59 @@ The cardinality is high here because exabgp can have multiple peers each with di
 
 `0` (or missing/stale) for down, `1` for up
 
-***WARNING**
+*WARNING*
 
 As stated above, this metric can be missing (either due to exporter restart or based on the mode you're using).
 If you care about knowing the state of a specific set of labels, you should check not only that the value is `1` but also the age or even presence of the metric.
+
+Here are some sample rules I've tested that should do the trick for AlertManager
+
+```yaml
+groups:
+- name: exabgp.rules
+  rules:
+  - alert: exabgp_scrape_up
+    expr: up{job="exabgp"} == 0
+    for: 1m
+    labels:
+      alertroute: slack-default
+      doc: https://runbook/exabgp
+      service: exabgp
+      severity: P1
+    annotations:
+      description: ExaBGP scraping failed
+      summary: exabgp could not be scraped on {{ $labels.instance }}
+  - alert: exabgp_up
+    expr: exabgp_up{} == 0 unless up{job="exabgp"} == 0
+    for: 1m
+    labels:
+      alertroute: slack-default
+      doc: https://runbook/exabgp
+      service: exabgp
+      severity: P1
+    annotations:
+      description: ExaBGP Down
+      summary: exporter reported exabgp as down on {{ $labels.instance }}
+  - alert: exabgp_state_peer
+    expr: exabgp_state_peer{} == 0 unless up{job="exabgp"} == 0
+    for: 1m
+    labels:
+      alertroute: slack-default
+      doc: https://runbook/exabgp
+      service: exabgp
+      severity: P1
+    annotations:
+      description: ExaBGP Peer Down
+      summary: exabgp reported peer {{ $labels.peer_ip }} for AS {{ $labels.peer_as }} as down on {{ $labels.instance }}
+  - alert: exabgp_route_withdrawn
+    expr: count (exabgp_state_route offset 30m > 0) by (instance,nlri) unless count(exabgp_state_route) by (instance,nlri)
+    for: 1m
+    labels:
+      alertroute: slack-default
+      doc: https://runbook/exabgp
+      service: exabgp
+      severity: P1
+    annotations:
+      description: ExaBGP has withdrawn a network
+      summary: exabgp is no longer advertising the network {{ $labels.nlri }} on {{ $labels.instance }}
+```
