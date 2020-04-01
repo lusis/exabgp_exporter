@@ -80,7 +80,7 @@ jobs:
             for d in .build/*/; do
               arch=$(basename $d)
               version=$(cat .build/.version)
-              tar -cvf .tarballs/exabgp_exporter-${version}.${arch}.tar.gz -C .build --transform s/${arch}/exabgp_exporter-v${version}.${arch}/ ${arch}
+              tar -cvzf .tarballs/exabgp_exporter-${version}.${arch}.tar.gz -C .build --transform s/${arch}/exabgp_exporter-v${version}.${arch}/ ${arch}
             done
       - persist_to_workspace:
           root: .
