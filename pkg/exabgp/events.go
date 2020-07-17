@@ -92,12 +92,16 @@ type Self struct {
 type Announcements struct {
 	IPV4Unicast map[string]*IPv4UnicastAnnouncement
 	IPV4Flow    map[string]*IPv4FlowAnnouncement
+	IPV6Unicast map[string]*IPv6UnicastAnnouncement
+	IPV6Flow    map[string]*IPv6FlowAnnouncement
 }
 
 // Withdrawals represents all the bgp `withdraw` messages
 type Withdrawals struct {
 	IPv4Unicast []IPv4UnicastWithdrawal
 	IPv4Flow    []IPv4Flow
+	IPv6Unicast []IPv6UnicastWithdrawal
+	IPv6Flow    []IPv6Flow
 }
 
 // IPv4UnicastAnnouncement represents an `ipv4 unicast` family announce
@@ -120,6 +124,32 @@ type IPv4FlowAnnouncement struct {
 
 // IPv4Flow represents an 'ipv4 flow'
 type IPv4Flow struct {
+	Attributes  messages.Attribute
+	Destination []string
+	Source      []string
+	String      string
+}
+
+// IPv6UnicastAnnouncement represents an `ipv6 unicast` family announce
+type IPv6UnicastAnnouncement struct {
+	Attributes messages.Attribute
+	NLRI       []string
+}
+
+// IPv6UnicastWithdrawal represents an 'ipv6 unicast' family route withdraw
+type IPv6UnicastWithdrawal struct {
+	Attributes messages.Attribute
+	NLRI       []string
+}
+
+// IPv6FlowAnnouncement represents an 'ipv6 flow' flow announce
+type IPv6FlowAnnouncement struct {
+	Attributes messages.Attribute
+	Flows      []IPv6Flow
+}
+
+// IPv6Flow represents an 'ipv6 flow'
+type IPv6Flow struct {
 	Attributes  messages.Attribute
 	Destination []string
 	Source      []string
@@ -190,6 +220,8 @@ func makeAnnouncements() *Announcements {
 	return &Announcements{
 		IPV4Unicast: make(map[string]*IPv4UnicastAnnouncement),
 		IPV4Flow:    make(map[string]*IPv4FlowAnnouncement),
+		IPV6Unicast: make(map[string]*IPv6UnicastAnnouncement),
+		IPV6Flow:    make(map[string]*IPv6FlowAnnouncement),
 	}
 }
 
@@ -221,24 +253,24 @@ func parseUpdateMessage(u messages.UpdateMessageFull) (*Announcements, *Withdraw
 	}
 
 	// ipv4-unicast withdraws
-	ws := []string{}
+	ws4 := []string{}
 	for _, r := range u.Withdraw.IPv4Unicast {
 		switch r := r.(type) {
 		case string:
-			ws = append(ws, r)
+			ws4 = append(ws4, r)
 		case map[string]interface{}:
 			for k, v := range r {
 				if _, ok := v.(string); !ok {
 					return nil, nil, fmt.Errorf("got a non-string value for %s: %s", k, v)
 				}
-				ws = append(ws, v.(string))
+				ws4 = append(ws4, v.(string))
 			}
 
 		default:
 			return nil, nil, fmt.Errorf("unable to parse route: %+v", r)
 		}
 	}
-	rw.IPv4Unicast = append(rw.IPv4Unicast, IPv4UnicastWithdrawal{Attributes: u.Attribute, NLRI: ws})
+	rw.IPv4Unicast = append(rw.IPv4Unicast, IPv4UnicastWithdrawal{Attributes: u.Attribute, NLRI: ws4})
 
 	// ipv4-flow announce
 	for nexthop, flows := range u.Announce.IPv4Flow {
@@ -259,5 +291,69 @@ func parseUpdateMessage(u messages.UpdateMessageFull) (*Announcements, *Withdraw
 	for _, flow := range u.Withdraw.IPv4Flow {
 		rw.IPv4Flow = append(rw.IPv4Flow, IPv4Flow{Attributes: u.Attribute, Destination: flow.DestinationIPv4, Source: flow.SourceIPv4, String: flow.String})
 	}
+
+	// ipv6-unicast announce
+	for nexthop, routes := range u.Announce.IPv6Unicast {
+		if _, ok := ra.IPV6Unicast[nexthop]; !ok {
+			ra.IPV6Unicast[nexthop] = &IPv6UnicastAnnouncement{}
+		}
+		for _, rs := range routes {
+			switch r := rs.(type) {
+			case string:
+				ra.IPV6Unicast[nexthop].NLRI = append(ra.IPV6Unicast[nexthop].NLRI, r)
+			case map[string]interface{}:
+				for k, v := range r {
+					if _, ok := v.(string); !ok {
+						return nil, nil, fmt.Errorf("got a non-string value for %s: %s", k, v)
+					}
+					ra.IPV6Unicast[nexthop].NLRI = append(ra.IPV6Unicast[nexthop].NLRI, v.(string))
+				}
+			default:
+				return nil, nil, fmt.Errorf("unable to parse route: %+v", rs)
+			}
+		}
+		ra.IPV6Unicast[nexthop].Attributes = u.Attribute
+	}
+
+	// ipv6-unicast withdraws
+	ws6 := []string{}
+	for _, r := range u.Withdraw.IPv6Unicast {
+		switch r := r.(type) {
+		case string:
+			ws6 = append(ws6, r)
+		case map[string]interface{}:
+			for k, v := range r {
+				if _, ok := v.(string); !ok {
+					return nil, nil, fmt.Errorf("got a non-string value for %s: %s", k, v)
+				}
+				ws6 = append(ws6, v.(string))
+			}
+
+		default:
+			return nil, nil, fmt.Errorf("unable to parse route: %+v", r)
+		}
+	}
+	rw.IPv6Unicast = append(rw.IPv6Unicast, IPv6UnicastWithdrawal{Attributes: u.Attribute, NLRI: ws6})
+
+	// ipv6-flow announce
+	for nexthop, flows := range u.Announce.IPv6Flow {
+		if _, ok := ra.IPV6Flow[nexthop]; !ok {
+			ra.IPV6Flow[nexthop] = &IPv6FlowAnnouncement{}
+		}
+		for _, flow := range flows {
+			f := IPv6Flow{
+				Destination: flow.DestinationIPv6,
+				Source:      flow.SourceIPv6,
+				String:      flow.String,
+			}
+			ra.IPV6Flow[nexthop].Flows = append(ra.IPV6Flow[nexthop].Flows, f)
+		}
+		ra.IPV6Flow[nexthop].Attributes = u.Attribute
+	}
+
+	for _, flow := range u.Withdraw.IPv6Flow {
+		rw.IPv6Flow = append(rw.IPv6Flow, IPv6Flow{Attributes: u.Attribute, Destination: flow.DestinationIPv6, Source: flow.SourceIPv6, String: flow.String})
+	}
+
 	return ra, rw, nil
 }

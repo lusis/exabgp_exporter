@@ -11,11 +11,11 @@ import (
 // line format:
 // neighbor <string> local-ip <string> local-as <int> peer-as <int> router-id <string> family-allowed in-open <afi> <safi> <details>
 var rxParseRIBLine = `^neighbor (?P<neighbor>\S+) local-ip (?P<local_ip>\S+) local-as (?P<local_as>\d+) peer-as (?P<peer_as>\d+) router-id (?P<router_id>\S+) family-allowed in-open (?P<afi>\S+) (?P<safi>\S+) (?P<details>.*)$`
-var rxParseIPvUnicast = `^(?P<nlri>\S+) next-hop (?P<next_hop>\S+)(| (?P<attributes>.*))$`
+var rxParseUnicast = `^(?P<nlri>\S+) next-hop (?P<next_hop>\S+)(| (?P<attributes>.*))$`
 
-func parseIPv4UnicastLine(s string) (map[string]string, error) {
+func parseUnicastLine(s string) (map[string]string, error) {
 	md := make(map[string]string)
-	re := regexp.MustCompile(rxParseIPvUnicast)
+	re := regexp.MustCompile(rxParseUnicast)
 	matches := re.FindStringSubmatch(s)
 	if len(matches) == 0 {
 		return md, fmt.Errorf("unable to parse line")
@@ -110,7 +110,7 @@ func (m *RIBMessage) IPv4Unicast() (*IPv4UnicastAnnounceTextMessage, error) {
 		return nil, fmt.Errorf("wrong entry family: %s", m.Family())
 	}
 	nm := &IPv4UnicastAnnounceTextMessage{}
-	res, err := parseIPv4UnicastLine(m.Details)
+	res, err := parseUnicastLine(m.Details)
 	if err != nil {
 		return nil, err
 	}
@@ -120,8 +120,29 @@ func (m *RIBMessage) IPv4Unicast() (*IPv4UnicastAnnounceTextMessage, error) {
 	return nm, nil
 }
 
-// IPv4Unicast returns an ipv4 flow from a rib line
+// IPv4Flow returns an ipv4 flow from a rib line
 func (m *RIBMessage) IPv4Flow() (*IPv4FlowAnnounceTextMessage, error) {
+	return nil, nil
+}
+
+// IPv6Unicast returns an ipv6 unicast from a rib line
+func (m *RIBMessage) IPv6Unicast() (*IPv6UnicastAnnounceTextMessage, error) {
+	if m.Family() != "ipv6 unicast" {
+		return nil, fmt.Errorf("wrong entry family: %s", m.Family())
+	}
+	nm := &IPv6UnicastAnnounceTextMessage{}
+	res, err := parseUnicastLine(m.Details)
+	if err != nil {
+		return nil, err
+	}
+	nm.NLRI = res["nlri"]
+	nm.NextHop = res["next_hop"]
+	nm.Attributes = res["attributes"]
+	return nm, nil
+}
+
+// IPv6Flow returns an ipv6 flow from a rib line
+func (m *RIBMessage) IPv6Flow() (*IPv6FlowAnnounceTextMessage, error) {
 	return nil, nil
 }
 
@@ -150,6 +171,37 @@ type IPv4MplsVPNAnnounceTextMessage struct {
 type IPv4FlowAnnounceTextMessage struct {
 	DestinationIPv4   string
 	SourceIPv4        string
+	Protocol          string
+	SourcePort        string
+	DestinationPort   string
+	ExtendedCommunity string
+}
+
+// IPv6UnicastAnnounceTextMessage represents an ipv6-unicast announce in a text-based encoded exabgp message
+type IPv6UnicastAnnounceTextMessage struct {
+	NLRI       string
+	NextHop    string
+	Attributes string
+}
+
+// IPv6MplsVPNAnnounceTextMessage represents an ipv6-mpls-vpn announce in a text-based encoded exabgp message
+type IPv6MplsVPNAnnounceTextMessage struct {
+	NLRI               string
+	Label              int
+	NextHop            string
+	RouteDistinguisher string
+	Community          string
+	Origin             string
+	ASPath             []int
+	ExtendedCommunity  string
+	LocalPreference    int
+	OriginatorID       string
+}
+
+// IPv6FlowAnnounceTextMessage represents an ipv6-flow announce in a text-based encoded exabgp message
+type IPv6FlowAnnounceTextMessage struct {
+	DestinationIPv6   string
+	SourceIPv6        string
 	Protocol          string
 	SourcePort        string
 	DestinationPort   string

@@ -35,3 +35,7 @@ neighbor 127.0.0.1 local-ip 127.0.0.1 local-as 64496 peer-as 64496 router-id 1.1
 neighbor 127.0.0.1 local-ip 127.0.0.1 local-as 64496 peer-as 64496 router-id 1.1.1.1 family-allowed in-open ipv4 mpls-vpn 128.0.64.0/18 label 110 next-hop 10.0.99.12 rd 63333:100 origin igp as-path [ 100 500 ] local-preference 100 originator-id 10.0.99.12 extended-community target:0:0
 neighbor 127.0.0.1 local-ip 127.0.0.1 local-as 64496 peer-as 64496 router-id 1.1.1.1 family-allowed in-open ipv4 mpls-vpn 128.0.0.0/18 label 110 next-hop 10.0.99.12 rd 63333:100 origin igp as-path [ 100 500 ] local-preference 100 originator-id 10.0.99.12 extended-community target:0:0
 neighbor 127.0.0.1 local-ip 127.0.0.1 local-as 64496 peer-as 64496 router-id 1.1.1.1 family-allowed in-open ipv4 flow flow destination-ipv4 0.0.0.0/32 source-ipv4 0.0.0.0/32 protocol =tcp destination-port =3128 extended-community rate-limit:0
+neighbor 10.0.0.2 local-ip 10.0.0.1 local-as 65200 peer-as 65500 router-id 10.0.0.1 family-allowed in-open ipv4 unicast 192.0.2.0/24 next-hop 10.0.0.1
+neighbor 10.0.0.2 local-ip 10.0.0.1 local-as 65200 peer-as 65500 router-id 10.0.0.1 family-allowed in-open ipv6 unicast 2001:db8:1000::/64 next-hop 2001::1
+neighbor 2001::2 local-ip 2001::1 local-as 65200 peer-as 65500 router-id 10.0.0.1 family-allowed in-open ipv4 unicast 192.0.2.0/24 next-hop 10.0.0.1
+neighbor 2001::2 local-ip 2001::1 local-as 65200 peer-as 65500 router-id 10.0.0.1 family-allowed in-open ipv6 unicast 2001:db8:1000::/64 next-hop 2001::1

@@ -82,6 +82,13 @@ func (e *EmbeddedExporter) Run(reader *bufio.Reader) {
 							e.rib.With(labels).Set(float64(1))
 						}
 					}
+					for _, v := range announcements.IPV6Unicast {
+						labels["family"] = "ipv6 unicast"
+						for _, r := range v.NLRI {
+							labels["nlri"] = r
+							e.rib.With(labels).Set(float64(1))
+						}
+					}
 				}
 				withdraws := evt.GetWithdrawals()
 				if withdraws != nil {
@@ -90,6 +97,13 @@ func (e *EmbeddedExporter) Run(reader *bufio.Reader) {
 					for _, w := range withdraws.IPv4Unicast {
 						for _, r := range w.NLRI {
 							labels["family"] = "ipv4 unicast"
+							labels["nlri"] = r
+							e.rib.With(labels).Set(float64(0))
+						}
+					}
+					for _, w := range withdraws.IPv6Unicast {
+						for _, r := range w.NLRI {
+							labels["family"] = "ipv6 unicast"
 							labels["nlri"] = r
 							e.rib.With(labels).Set(float64(0))
 						}

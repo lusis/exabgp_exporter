@@ -94,6 +94,8 @@ type UpdateMessageFull struct {
 		// non-compact: "ipv4 unicast": [ { "nlri": "192.168.88.0/24" } ] } } } } }
 		IPv4Unicast map[string][]interface{}      `json:"ipv4 unicast"`
 		IPv4Flow    IPv4FlowAnnounceMessage       `json:"ipv4 flow"`
+		IPv6Unicast map[string][]interface{}      `json:"ipv6 unicast"`
+		IPv6Flow    IPv6FlowAnnounceMessage       `json:"ipv6 flow"`
 		L2VPNVpls   map[string][]L2VPNVplsMessage `json:"l2vpn vpls"`
 	} `json:"announce"`
 	Withdraw struct {
@@ -101,6 +103,8 @@ type UpdateMessageFull struct {
 		// non-compact: "ipv4 unicast": [ { "nlri": "192.168.88.0/24" } ] } } } } }
 		IPv4Unicast []interface{}             `json:"ipv4 unicast"`
 		IPv4Flow    []IPv4FlowWithdrawMessage `json:"ipv4 flow"`
+		IPv6Unicast []interface{}             `json:"ipv6 unicast"`
+		IPv6Flow    []IPv6FlowWithdrawMessage `json:"ipv6 flow"`
 		L2VPNVpls   []L2VPNVplsMessage        `json:"l2vpn vpls"`
 	} `json:"withdraw"`
 	EOR EORMessage `json:"eor"`
@@ -139,6 +143,29 @@ type IPv4FlowMessage struct {
 type IPv4FlowWithdrawMessage struct {
 	DestinationIPv4 []string `json:"destination-ipv4"`
 	SourceIPv4      []string `json:"source-ipv4"`
+	String          string   `json:"string"`
+}
+
+// IPv6UnicastAnnounceMessage represents an ipv6 flow family announcement
+type IPv6UnicastAnnounceMessage interface{}
+
+// IPv6UnicastWithdrawMessage represents an ipv6 flow family withdraw
+type IPv6UnicastWithdrawMessage interface{}
+
+// IPv6FlowAnnounceMessage represents an ipv6 flow family announcement
+type IPv6FlowAnnounceMessage map[string][]IPv6FlowMessage
+
+// IPv6FlowMessage represents an ipv6 flow family announcement
+type IPv6FlowMessage struct {
+	DestinationIPv6 []string `json:"destination-ipv6"`
+	SourceIPv6      []string `json:"source-ipv6"`
+	String          string   `json:"string"`
+}
+
+// IPv6FlowWithdrawMessage represents an ipv6 flow family withdraw
+type IPv6FlowWithdrawMessage struct {
+	DestinationIPv6 []string `json:"destination-ipv6"`
+	SourceIPv6      []string `json:"source-ipv6"`
 	String          string   `json:"string"`
 }
 

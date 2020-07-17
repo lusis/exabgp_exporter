@@ -3,3 +3,4 @@ Peer            AS        up/down state       |     #sent     #recvd
 192.168.1.1     64496     0:00:01 established          45          0
 192.168.1.1     64496     0:00:01 idle                 45          0
 10.150.254.1    65500   22 days, 23:19:53 established           3          1
+2001:123:456:789::1 65500   3 days, 21:41:45 established           3          2

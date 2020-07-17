@@ -66,6 +66,11 @@ func (e *StandaloneExporter) Collect(ch chan<- prometheus.Metric) {
 				desc := newRibMetric("route")
 				m := prometheus.MustNewConstMetric(desc, prometheus.GaugeValue, float64(1), r.PeerIP, r.PeerAS, r.LocalIP, r.LocalAS, v4u.NLRI, r.Family())
 				ch <- m
+			case "ipv6 unicast":
+				v6u, _ := r.IPv6Unicast()
+				desc := newRibMetric("route")
+				m := prometheus.MustNewConstMetric(desc, prometheus.GaugeValue, float64(1), r.PeerIP, r.PeerAS, r.LocalIP, r.LocalAS, v6u.NLRI, r.Family())
+				ch <- m
 			default:
 				log.Errorf("unable to handle family %s", r.Family())
 			}
