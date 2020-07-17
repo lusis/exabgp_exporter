@@ -43,7 +43,7 @@ func main() {
 			log.Fatal(err)
 		}
 		prometheus.MustRegister(e)
-		prometheus.MustRegister(version.NewCollector("haproxy_exporter"))
+		prometheus.MustRegister(version.NewCollector("exabgp_exporter"))
 	case "stream":
 		log.Infof("starting exabgp_exporter %s in stream mode", version.Info())
 		log.Infof("build context: %s", version.BuildContext())
@@ -52,7 +52,7 @@ func main() {
 			log.Fatal(err)
 		}
 		prometheus.MustRegister(e)
-		prometheus.MustRegister(version.NewCollector("haproxy_exporter"))
+		prometheus.MustRegister(version.NewCollector("exabgp_exporter"))
 		reader := bufio.NewReader(os.Stdin)
 		e.Run(reader)
 	}
@@ -60,9 +60,9 @@ func main() {
 	http.Handle(*metricsPath, promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte(`<html>
-             <head><title>Haproxy Exporter</title></head>
+             <head><title>ExaBGP Exporter</title></head>
              <body>
-             <h1>Haproxy Exporter</h1>
+             <h1>ExaBGP Exporter</h1>
              <p><a href='` + *metricsPath + `'>Metrics</a></p>
              </body>
              </html>`))
