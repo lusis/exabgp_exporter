@@ -22,12 +22,14 @@ var (
 func main() {
 
 	var (
-		_             = kingpin.Command("stream", "run in stream mode (appropriate for embedding as an exabgp process)")
-		shellCmd      = kingpin.Command("standalone", "run in standalone mode (calls exabgpcli on each scrape)").Default()
-		exabgpcmd     = shellCmd.Flag("exabgp.cli.command", "exabgpcli command").Default(exaBGPCLICommand).String()
-		exabgproot    = shellCmd.Flag("exabgp.root", "value of --root to be passed to exabgpcli").Default(exaBGPCLIRoot).String()
-		listenAddress = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9576").String()
-		metricsPath   = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
+		_                    = kingpin.Command("stream", "run in stream mode (appropriate for embedding as an exabgp process)")
+		shellCmd             = kingpin.Command("standalone", "run in standalone mode (calls exabgpcli on each scrape)").Default()
+		exabgpcmd            = shellCmd.Flag("exabgp.cli.command", "exabgpcli command").Default(exaBGPCLICommand).String()
+		exabgproot           = shellCmd.Flag("exabgp.root", "value of --root to be passed to exabgpcli").Default(exaBGPCLIRoot).String()
+		listenAddress        = kingpin.Flag("web.listen-address", "Address to listen on for web interface and telemetry.").Default(":9576").String()
+		metricsPath          = kingpin.Flag("web.telemetry-path", "Path under which to expose metrics.").Default("/metrics").String()
+		detailedAnnounceInfo = kingpin.Flag("exabgp.detailed-announce-info",
+			"Collect announce info: ASPath, LocalPref, MED, Communities. Only supported in 'stream' mode.").Default("false").Bool()
 	)
 
 	log.AddFlags(kingpin.CommandLine)
@@ -47,7 +49,7 @@ func main() {
 	case "stream":
 		log.Infof("starting exabgp_exporter %s in stream mode", version.Info())
 		log.Infof("build context: %s", version.BuildContext())
-		e, err := exporter.NewEmbeddedExporter()
+		e, err := exporter.NewEmbeddedExporter(*detailedAnnounceInfo)
 		if err != nil {
 			log.Fatal(err)
 		}
