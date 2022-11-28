@@ -17,7 +17,9 @@ var (
 	summaryLabelNames = []string{"peer_ip", "peer_asn"}
 	ribHelp           = `shows the state of a given nlri`
 	ribLabelNames     = []string{"peer_ip", "peer_asn", "local_ip", "local_asn", "nlri", "family"}
-	exabgpUp          = prometheus.NewDesc(prometheus.BuildFQName(namespace, "", "up"), "Was the last scrape of exabgp successful.", nil, nil)
+	// Only supported in EmbeddedExporter
+	ribDetailedLabelNames = []string{"peer_ip", "peer_asn", "local_ip", "local_asn", "nlri", "family", "med", "local_preference", "aspath", "communities"}
+	exabgpUp              = prometheus.NewDesc(prometheus.BuildFQName(namespace, "", "up"), "Was the last scrape of exabgp successful.", nil, nil)
 )
 
 func newSummaryMetric(metricName string) *prometheus.Desc {

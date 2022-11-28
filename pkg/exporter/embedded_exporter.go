@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -13,15 +15,21 @@ import (
 )
 
 type EmbeddedExporter struct {
-	mutex   sync.RWMutex
-	summary *prometheus.GaugeVec
-	rib     *prometheus.GaugeVec
+	mutex                sync.RWMutex
+	summary              *prometheus.GaugeVec
+	rib                  *prometheus.GaugeVec
+	detailedAnnounceInfo bool
 	BaseExporter
 }
 
-func NewEmbeddedExporter() (*EmbeddedExporter, error) {
+func NewEmbeddedExporter(detailedAnnounceInfo bool) (*EmbeddedExporter, error) {
 	be := NewBaseExporter()
 	be.up.Set(float64(1))
+	gaugeRibLabelNames := ribLabelNames
+	if detailedAnnounceInfo {
+		gaugeRibLabelNames = ribDetailedLabelNames
+	}
+
 	sm := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name:      "peer",
 		Namespace: namespace,
@@ -33,13 +41,15 @@ func NewEmbeddedExporter() (*EmbeddedExporter, error) {
 		Namespace: namespace,
 		Subsystem: "state",
 		Help:      ribHelp,
-	}, ribLabelNames)
+	}, gaugeRibLabelNames)
+
 	prometheus.MustRegister(sm)
 	prometheus.MustRegister(rm)
 	return &EmbeddedExporter{
-		summary:      sm,
-		rib:          rm,
-		BaseExporter: be,
+		summary:              sm,
+		rib:                  rm,
+		BaseExporter:         be,
+		detailedAnnounceInfo: detailedAnnounceInfo,
 	}, nil
 }
 
@@ -76,6 +86,27 @@ func (e *EmbeddedExporter) Run(reader *bufio.Reader) {
 					labels["local_ip"] = evt.Self.IP
 					labels["local_asn"] = fmt.Sprintf("%d", evt.Self.ASN)
 					for _, v := range announcements.IPV4Unicast {
+						// If extra info enabled
+						if e.detailedAnnounceInfo {
+							// Transform communities to string
+							communityLines := []string{}
+							for _, communityAS := range v.Attributes.Community {
+								// #0 is ASN and #1 is community value
+								communityLine := fmt.Sprintf("%d:%d", communityAS[0], communityAS[1])
+								communityLines = append(communityLines, communityLine)
+							}
+							labels["communities"] = strings.Join(communityLines, " ")
+
+							// Transform ASPath to string
+							asPathLines := []string{}
+							for _, communityAS := range v.Attributes.ASPath {
+								asPathLines = append(asPathLines, strconv.Itoa(communityAS))
+							}
+							labels["aspath"] = strings.Join(asPathLines, " ")
+
+							labels["local_preference"] = strconv.Itoa(v.Attributes.LocalPreference)
+							labels["med"] = strconv.Itoa(int(v.Attributes.Med))
+						}
 						labels["family"] = "ipv4 unicast"
 						for _, r := range v.NLRI {
 							labels["nlri"] = r
